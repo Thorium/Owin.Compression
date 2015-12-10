@@ -1,0 +1,23 @@
+type project
+owners
+    Tuomas Hietanen
+authors 
+    Tuomas Hietanen
+projectUrl
+    http://github.com/Thorium/Owin.Compression
+iconUrl
+    https://raw.githubusercontent.com/Thorium/Owin.Compression/master/docs/files/img/logo.png
+licenseUrl
+    http://github.com/Thorium/Owin.Compression/blob/master/LICENSE.txt
+requireLicenseAcceptance
+    false
+copyright
+    Copyright 2015
+tags
+    OWIN SelfHost GZip Deflate compress pack self host file system pipeline Microsoft
+summary
+    Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipeline.
+description
+    Compression (Deflate / GZip) module for Microsoft OWIN self host web server. With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to reduce amount of web traffic.
+
+
