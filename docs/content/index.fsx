@@ -56,6 +56,9 @@ do()
 Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup> "http://*:8080"
 
 (**
+
+![compressed](https://raw.githubusercontent.com/Thorium/Owin.Compression/master/screen.png)
+
 Some more info
 
 Samples & documentation
