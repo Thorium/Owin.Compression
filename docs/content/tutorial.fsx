@@ -5,13 +5,60 @@
 #I @"./../../packages/Owin/lib/net40"
 #I @"./../../packages/Microsoft.Owin/lib/net45" 
 #I @"./../../packages/Microsoft.Owin.Hosting/lib/net45"
+#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net45"
 #I @"./../../bin/Owin.Compression"
 
 (**
-Introducing your project
-========================
+# Using this library (C-Sharp) #
 
-Say more
+Create new C# console application project (.NET 4.5 or more). Add reference to NuGet-packages:
+
+- Microsoft.Owin
+- Microsoft.Owin.Hosting
+- Microsoft.Owin.Host.HttpListener
+- Owin.Compression (this package)
+
+Then write the program, e.g.:
+
+		[lang=cs]
+		using System;
+		using Owin;
+		[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
+		namespace MyServer
+		{
+			class MyWebStartup
+			{
+				public void Configuration(Owin.IAppBuilder app)
+				{
+					var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
+					//or var settings = new CompressionSettings( ... )
+					app.MapCompressionModule("/zipped", settings);
+				}
+			}
+
+			class Program
+			{
+				static void Main(string[] args)
+				{
+					Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
+					Console.WriteLine("Server started... Press enter to exit.");
+					Console.ReadLine();
+				}
+			}
+		}
+
+
+Have a large text file in your temp-folder, c:\temp\test\mytempfile.txt
+
+Now, run the program (F5) and start a browser to address:
+
+http://localhost:8080/zipped/test/mytempfile.txt
+
+Observe that the file is transfered as compressed but the browser will automatically decompress the traffic.
+
+
+
+### Corresponding code with F-Sharp ###
 
 *)
 #r "Owin.dll"
@@ -26,7 +73,7 @@ open System
 type MyWebStartup() =
     member __.Configuration(app:Owin.IAppBuilder) =
         let compressionSetting = 
-            {DefaultCompressionSettings with 
+            {OwinCompression.DefaultCompressionSettings with 
                 ServerPath = System.Configuration.ConfigurationManager.AppSettings.["WwwRoot"]; 
                 CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.) }
         app.MapCompressionModule("/zipped", compressionSetting) |> ignore 

@@ -5,6 +5,7 @@
 #I @"./../../packages/Owin/lib/net40"
 #I @"./../../packages/Microsoft.Owin/lib/net45" 
 #I @"./../../packages/Microsoft.Owin.Hosting/lib/net45"
+#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net45"
 #I @"./../../bin/Owin.Compression"
 
 (**
@@ -24,42 +25,47 @@ Documentation
   <div class="span1"></div>
 </div>
 
+Default compression used is deflate, then gzip, as deflate should be faster.
+
 Example
 -------
 
-This example demonstrates using a function defined in this sample library.
+This example demonstrates using MapCompressionModule-function defined in this sample library.
 
-*)
-#r "Owin.dll"
-#r "Microsoft.Owin.dll"
-#r "Microsoft.Owin.Hosting.dll"
-#r "System.Configuration.dll"
-#r "Owin.Compression.dll"
+		[lang=cs]
+		using System;
+		using Owin;
+		[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
+		namespace MyServer
+		{
+			class MyWebStartup
+			{
+				public void Configuration(Owin.IAppBuilder app)
+				{
+					var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
+					//or var settings = new CompressionSettings( ... )
+					app.MapCompressionModule("/zipped", settings);
+				}
+			}
 
-open Owin
-open System
+			class Program
+			{
+				static void Main(string[] args)
+				{
+					Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
+					Console.WriteLine("Server started... Press enter to exit.");
+					Console.ReadLine();
+				}
+			}
+		}
 
-type MyWebStartup() =
-    member __.Configuration(app:Owin.IAppBuilder) =
-        let compressionSetting = 
-            {DefaultCompressionSettings with 
-                ServerPath = System.Configuration.ConfigurationManager.AppSettings.["WwwRoot"]; 
-                CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.) }
-        app.MapCompressionModule("/zipped", compressionSetting) |> ignore 
-        ()
-
-[<assembly: Microsoft.Owin.OwinStartup(typeof<MyWebStartup>)>]
-do()
-
-// and then...
-
-Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup> "http://*:8080"
-
-(**
+And now your files are smaller than with e.g. just Microsoft.Owin.StaticFiles -library server:
 
 ![compressed](https://raw.githubusercontent.com/Thorium/Owin.Compression/master/screen.png)
 
-Some more info
+Even though the browser sees everything as plain text, the traffic is actually transfered as compressed format.
+You can monitor the traffic with e.g. Fiddler.
+
 
 Samples & documentation
 -----------------------
