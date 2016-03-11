@@ -166,7 +166,30 @@
 </tr>
 </table>
 
-<p>Some more info</p>
+<p>Or you can use app.UseCompressionModule() in the beginning of the configuration to compress the whole response.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+<span class="l">7: </span>
+<span class="l">8: </span>
+<span class="l">9: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs26', 38)" onmouseover="showTip(event, 'fs26', 38)" class="t">MyWebStartupExample2</span>() <span class="o">=</span>
+    <span class="k">member</span> <span class="i">__</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs27', 39)" onmouseover="showTip(event, 'fs27', 39)" class="f">Configuration</span>(<span onmouseout="hideTip(event, 'fs9', 40)" onmouseover="showTip(event, 'fs9', 40)" class="i">app</span><span class="o">:</span><span onmouseout="hideTip(event, 'fs6', 41)" onmouseover="showTip(event, 'fs6', 41)" class="i">Owin</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs10', 42)" onmouseover="showTip(event, 'fs10', 42)" class="t">IAppBuilder</span>) <span class="o">=</span>
+        <span onmouseout="hideTip(event, 'fs9', 43)" onmouseover="showTip(event, 'fs9', 43)" class="i">app</span><span class="o">.</span><span class="i">UseCompressionModule</span>() <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs19', 44)" onmouseover="showTip(event, 'fs19', 44)" class="f">ignore</span>
+        
+        <span class="c">//app.MapSignalR(hubConfig)</span>
+        <span class="c">//app.UseFileServer(fileServerOptions) |&gt; ignore</span>
+        <span class="c">//etc...</span>
+
+        ()
+</code></pre></td>
+</tr>
+</table>
 
 <div class="tip" id="fs1">val using : resource:&#39;T -&gt; action:(&#39;T -&gt; &#39;U) -&gt; &#39;U (requires &#39;T :&gt; System.IDisposable)<br /><br />Full name: Microsoft.FSharp.Core.Operators.using</div>
 <div class="tip" id="fs2">namespace System</div>
@@ -193,6 +216,8 @@
 <div class="tip" id="fs23">namespace Microsoft.Owin.Hosting</div>
 <div class="tip" id="fs24">type WebApp =<br />&#160;&#160;static member Start&lt;&#39;TStartup&gt; : url:string -&gt; IDisposable + 5 overloads<br /><br />Full name: Microsoft.Owin.Hosting.WebApp</div>
 <div class="tip" id="fs25">Owin.Hosting.WebApp.Start(options: Owin.Hosting.StartOptions) : IDisposable<br />Owin.Hosting.WebApp.Start(url: string) : IDisposable<br />Owin.Hosting.WebApp.Start&lt;&#39;TStartup&gt;(options: Owin.Hosting.StartOptions) : IDisposable<br />Owin.Hosting.WebApp.Start&lt;&#39;TStartup&gt;(url: string) : IDisposable<br />Owin.Hosting.WebApp.Start(options: Owin.Hosting.StartOptions, startup: Action&lt;Owin.IAppBuilder&gt;) : IDisposable<br />Owin.Hosting.WebApp.Start(url: string, startup: Action&lt;Owin.IAppBuilder&gt;) : IDisposable</div>
+<div class="tip" id="fs26">Multiple items<br />type MyWebStartupExample2 =<br />&#160;&#160;new : unit -&gt; MyWebStartupExample2<br />&#160;&#160;member Configuration : app:IAppBuilder -&gt; unit<br /><br />Full name: Tutorial.MyWebStartupExample2<br /><br />--------------------<br />new : unit -&gt; MyWebStartupExample2</div>
+<div class="tip" id="fs27">Multiple items<br />member MyWebStartupExample2.Configuration : app:Owin.IAppBuilder -&gt; unit<br /><br />Full name: Tutorial.MyWebStartupExample2.Configuration<br /><br />--------------------<br />namespace System.Configuration</div>
 
         </div>
         <div class="span3">
