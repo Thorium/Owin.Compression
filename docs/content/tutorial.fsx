@@ -87,5 +87,15 @@ do()
 Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup> "http://*:8080"
 
 (**
-Some more info
+Or you can use app.UseCompressionModule() in the beginning of the configuration to compress the whole response.
 *)
+
+type MyWebStartupExample2() =
+    member __.Configuration(app:Owin.IAppBuilder) =
+        app.UseCompressionModule() |> ignore
+        
+        //app.MapSignalR(hubConfig)
+        //app.UseFileServer(fileServerOptions) |> ignore
+        //etc...
+
+        ()

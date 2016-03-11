@@ -42,6 +42,9 @@ This example demonstrates using MapCompressionModule-function defined in this sa
 			{
 				public void Configuration(Owin.IAppBuilder app)
 				{
+                    // This will compress the whole request, if you want to use e.g. Microsoft.Owin.StaticFiles server:
+                    // app.UseCompressionModule()
+
 					var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
 					//or var settings = new CompressionSettings( ... )
 					app.MapCompressionModule("/zipped", settings);
