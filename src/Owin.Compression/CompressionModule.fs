@@ -62,6 +62,7 @@ module OwinCompression =
     let internal awaitTask = Async.AwaitIAsyncResult >> Async.Ignore
 
     let internal compress (context:IOwinContext) (settings:CompressionSettings) (mode:ResponseMode) =
+        let cancellationToken = context.Request.CallCancelled
 
         let getFile() =
             let unpacked :string = 
@@ -118,10 +119,10 @@ module OwinCompression =
                         | GZip -> 
                             context.Response.Headers.Add("Content-Encoding", [|"gzip"|])
                             new GZipStream(output, CompressionMode.Compress) :> Stream
-                    let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, context.Request.CallCancelled) |> awaitTask
+                    let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
                     zipped.Close()
                     let op = output.ToArray()
-                    return! context.Response.WriteAsync(op, context.Request.CallCancelled) |> awaitTask
+                    return! context.Response.WriteAsync(op, cancellationToken) |> awaitTask
                 } |> Async.StartAsTask :> Task
 
             | ContextResponseBody(next) ->
@@ -146,7 +147,8 @@ module OwinCompression =
                     | true -> 
                         if context.Response.Body.CanSeek then
                             context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
-                        do! context.Response.Body.CopyToAsync stream |> awaitTask
+                        
+                        do! context.Response.Body.CopyToAsync(stream, 81920, cancellationToken) |> awaitTask
                     | false -> 
 
                         let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
@@ -161,25 +163,28 @@ module OwinCompression =
                             | GZip -> 
                                 context.Response.Headers.Add("Content-Encoding", [|"gzip"|])
                                 new GZipStream(output, CompressionMode.Compress) :> Stream
-                        //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, context.Request.CallCancelled) |> awaitTask
+                        //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
                         if context.Response.Body.CanSeek then
                             context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                        do! context.Response.Body.CopyToAsync(zipped, 81920, context.Request.CallCancelled) |> awaitTask
+                        do! context.Response.Body.CopyToAsync(zipped, 81920, cancellationToken) |> awaitTask
                         
                         zipped.Close()
                         let op = output.ToArray()
 
-                        if canStream then
-                            context.Response.Headers.["Transfer-Encoding"] <- "chunked"
-                        else
-                            context.Response.ContentLength <- Nullable(op.LongLength)
+                        if not(cancellationToken.IsCancellationRequested) then
+                            try
+                                if canStream then
+                                    context.Response.Headers.["Transfer-Encoding"] <- "chunked"
+                                else
+                                    context.Response.ContentLength <- Nullable(op.LongLength)
+                            with | _ -> () // Content length info is not so important...
 
                         use tmpOutput = new MemoryStream(op)
                         if tmpOutput.CanSeek then
                             tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                        do! tmpOutput.CopyToAsync(stream, 81920, context.Request.CallCancelled) |> awaitTask
+                        do! tmpOutput.CopyToAsync(stream, 81920, cancellationToken) |> awaitTask
                         return ()
                 } |> Async.StartAsTask :> Task
 
