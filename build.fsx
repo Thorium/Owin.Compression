@@ -391,7 +391,7 @@ Target "All" DoNothing
   ==> "BuildPackage"
 
 "CleanDocs"
-  ==> "GenerateHelp"
+//  ==> "GenerateHelp"
   ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
 
