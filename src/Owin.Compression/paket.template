@@ -1,4 +1,6 @@
 type project
+title
+    Owin.Compression
 owners
     Tuomas Hietanen
 authors 

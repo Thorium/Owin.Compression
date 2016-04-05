@@ -1,10 +1,5 @@
 source https://nuget.org/api/v2
 
-nuget FSharp.Formatting
-nuget NUnit ~> 2
-nuget NUnit.Runners ~> 2
-nuget FAKE
-nuget SourceLink.Fake
 nuget Owin
 nuget Microsoft.Owin
 nuget Microsoft.Owin.Hosting
@@ -13,4 +8,18 @@ nuget Microsoft.Owin.Host.HttpListener
 // nuget Microsoft.AspNet.WebApi.OwinSelfHost
 // nuget Microsoft.Owin.StaticFiles
 
-github fsharp/FAKE modules/Octokit/Octokit.fsx
+group Build
+  source https://nuget.org/api/v2
+
+  nuget SourceLink.Fake
+  nuget FAKE
+  nuget FSharp.Formatting
+
+  github fsharp/FAKE modules/Octokit/Octokit.fsx
+
+group Test
+  source https://nuget.org/api/v2
+
+  nuget NUnit ~> 2
+  nuget NUnit.Runners ~> 2
+

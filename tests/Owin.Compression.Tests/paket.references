@@ -1,6 +1,8 @@
-NUnit
-NUnit.Runners
 Owin
 Microsoft.Owin
 Microsoft.Owin.Hosting
 Microsoft.Owin.Host.HttpListener
+
+group Test
+NUnit
+NUnit.Runners
