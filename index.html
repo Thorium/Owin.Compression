@@ -89,7 +89,7 @@
             <span class="c">// This will compress the whole request, if you want to use e.g. Microsoft.Owin.StaticFiles server:</span>
             <span class="c">// app.UseCompressionModule()</span>
 
-      <span class="k">var</span> settings <span class="o">=</span> OwinCompression.DefaultCompressionSettingsWithPath(<span class="s">@"c:\temp\");
+      <span class="k">var</span> settings <span class="o">=</span> OwinCompression.DefaultCompressionSettingsWithPath(<span class="s">"c:\\temp\\");
       //or var settings = new CompressionSettings( ... )
       app.MapCompressionModule("</span>/zipped<span class="s">", settings);
     }
