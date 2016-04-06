@@ -7,6 +7,8 @@
 #I @"./../../packages/Microsoft.Owin.Hosting/lib/net45"
 #I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net45"
 #I @"./../../bin/Owin.Compression"
+#I @"./../../packages/Microsoft.Owin.StaticFiles/lib/net45"
+#I @"./../../packages/Microsoft.Owin.FileSystems/lib/net45"
 
 (**
 Owin.Compression
@@ -27,40 +29,40 @@ Documentation
 
 Default compression used is deflate, then gzip, as deflate should be faster.
 
-Example
--------
+Example #1
+----------
 
 This example demonstrates using MapCompressionModule-function defined in this sample library.
 
-		[lang=cs]
-		using System;
-		using Owin;
-		[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
-		namespace MyServer
+    [lang=csharp]
+	using System;
+	using Owin;
+	[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
+	namespace MyServer
+	{
+		class MyWebStartup
 		{
-			class MyWebStartup
+			public void Configuration(Owin.IAppBuilder app)
 			{
-				public void Configuration(Owin.IAppBuilder app)
-				{
-                    // This will compress the whole request, if you want to use e.g. Microsoft.Owin.StaticFiles server:
-                    // app.UseCompressionModule()
+                // This will compress the whole request, if you want to use e.g. Microsoft.Owin.StaticFiles server:
+                // app.UseCompressionModule()
 
-					var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
-					//or var settings = new CompressionSettings( ... )
-					app.MapCompressionModule("/zipped", settings);
-				}
-			}
-
-			class Program
-			{
-				static void Main(string[] args)
-				{
-					Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
-					Console.WriteLine("Server started... Press enter to exit.");
-					Console.ReadLine();
-				}
+				var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
+				//or var settings = new CompressionSettings( ... )
+				app.MapCompressionModule("/zipped", settings);
 			}
 		}
+
+		class Program
+		{
+			static void Main(string[] args)
+			{
+				Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
+				Console.WriteLine("Server started... Press enter to exit.");
+				Console.ReadLine();
+			}
+		}
+	}
 
 And now your files are smaller than with e.g. just Microsoft.Owin.StaticFiles -library server:
 
@@ -68,6 +70,40 @@ And now your files are smaller than with e.g. just Microsoft.Owin.StaticFiles -l
 
 Even though the browser sees everything as plain text, the traffic is actually transfered as compressed format.
 You can monitor the traffic with e.g. Fiddler.
+
+Example #2
+----------
+
+Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
+and compressing all the responses (and files) on-the-fly. This example is in F-Sharp (and can be run with F#-interactive):
+
+*)
+
+#r "Owin.dll"
+#r "Microsoft.Owin.dll"
+#r "Microsoft.Owin.FileSystems.dll"
+#r "Microsoft.Owin.Hosting.dll"
+#r "Microsoft.Owin.StaticFiles.dll"
+#r "System.Configuration.dll"
+#r "Owin.Compression.dll"
+
+open Owin
+open System
+
+type MyStartup() =
+    member __.Configuration(app:Owin.IAppBuilder) =
+        let app1 = app.UseCompressionModule()
+        app1.UseFileServer "/." |> ignore
+        ()
+
+let server = Microsoft.Owin.Hosting.WebApp.Start<MyStartup> "http://*:6000"
+Console.WriteLine "Press Enter to stop & quit."
+Console.ReadLine() |> ignore
+server.Dispose()
+
+(**
+
+More complete example can be found <a href="https://github.com/Thorium/WebsitePlayground">here</a>.
 
 
 Samples & documentation

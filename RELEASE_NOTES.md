@@ -1,3 +1,6 @@
+### 1.0.4 - April 06 2016
+* Better handling of canceled request.
+
 ### 1.0.3 - April 04 2016
 * Better handling of canceled request.
 

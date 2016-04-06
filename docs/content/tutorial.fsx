@@ -20,32 +20,32 @@ Create new C# console application project (.NET 4.5 or more). Add reference to N
 
 Then write the program, e.g.:
 
-		[lang=cs]
-		using System;
-		using Owin;
-		[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
-		namespace MyServer
+    [lang=csharp]
+	using System;
+	using Owin;
+	[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
+	namespace MyServer
+	{
+		class MyWebStartup
 		{
-			class MyWebStartup
+			public void Configuration(Owin.IAppBuilder app)
 			{
-				public void Configuration(Owin.IAppBuilder app)
-				{
-					var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
-					//or var settings = new CompressionSettings( ... )
-					app.MapCompressionModule("/zipped", settings);
-				}
-			}
-
-			class Program
-			{
-				static void Main(string[] args)
-				{
-					Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
-					Console.WriteLine("Server started... Press enter to exit.");
-					Console.ReadLine();
-				}
+				var settings = OwinCompression.DefaultCompressionSettingsWithPath(@"c:\temp\");
+				//or var settings = new CompressionSettings( ... )
+				app.MapCompressionModule("/zipped", settings);
 			}
 		}
+
+		class Program
+		{
+			static void Main(string[] args)
+			{
+				Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
+				Console.WriteLine("Server started... Press enter to exit.");
+				Console.ReadLine();
+			}
+		}
+	}
 
 
 Have a large text file in your temp-folder, c:\temp\test\mytempfile.txt
