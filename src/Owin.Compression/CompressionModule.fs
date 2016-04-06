@@ -60,6 +60,7 @@ module OwinCompression =
         {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = Some (cachetime) }
 
     let internal awaitTask = Async.AwaitIAsyncResult >> Async.Ignore
+    let private defaultBufferSize = 81920
 
     let internal compress (context:IOwinContext) (settings:CompressionSettings) (mode:ResponseMode) =
         let cancellationToken = context.Request.CallCancelled
@@ -105,11 +106,12 @@ module OwinCompression =
             match mode with
             | File ->
                 async {
+                    if cancellationToken.IsCancellationRequested then ()
                     use output = new MemoryStream()
                     let! awaited = getFile()
                     let shouldskip, bytes = awaited
                     if(shouldskip) then
-                            return! context.Response.WriteAsync(bytes) |> awaitTask
+                            return! context.Response.WriteAsync(bytes, cancellationToken) |> awaitTask
                     else
                     use zipped = 
                         match enc with
@@ -120,6 +122,7 @@ module OwinCompression =
                             context.Response.Headers.Add("Content-Encoding", [|"gzip"|])
                             new GZipStream(output, CompressionMode.Compress) :> Stream
                     let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
+                    t1 |> ignore
                     zipped.Close()
                     let op = output.ToArray()
                     return! context.Response.WriteAsync(op, cancellationToken) |> awaitTask
@@ -127,6 +130,9 @@ module OwinCompression =
 
             | ContextResponseBody(next) ->
                 async {
+                    if cancellationToken.IsCancellationRequested then 
+                        do! next.Invoke() |> awaitTask
+                        ()
                     let stream = context.Response.Body
                     use buffer = new MemoryStream()
                     context.Response.Body <- buffer
@@ -148,7 +154,7 @@ module OwinCompression =
                         if context.Response.Body.CanSeek then
                             context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                        do! context.Response.Body.CopyToAsync(stream, 81920, cancellationToken) |> awaitTask
+                        do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
                     | false -> 
 
                         let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
@@ -167,7 +173,7 @@ module OwinCompression =
                         if context.Response.Body.CanSeek then
                             context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                        do! context.Response.Body.CopyToAsync(zipped, 81920, cancellationToken) |> awaitTask
+                        do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken) |> awaitTask
                         
                         zipped.Close()
                         let op = output.ToArray()
@@ -184,7 +190,7 @@ module OwinCompression =
                         if tmpOutput.CanSeek then
                             tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                        do! tmpOutput.CopyToAsync(stream, 81920, cancellationToken) |> awaitTask
+                        do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
                         return ()
                 } |> Async.StartAsTask :> Task
 
@@ -194,7 +200,7 @@ module OwinCompression =
                 | File ->
                     async{
                         let! _, r = getFile()
-                        return context.Response.WriteAsync(r) |> Async.AwaitTask
+                        return context.Response.WriteAsync(r, cancellationToken) |> Async.AwaitTask
                     } |> Async.StartAsTask :> Task
                 | ContextResponseBody(next) ->
                     next.Invoke()
