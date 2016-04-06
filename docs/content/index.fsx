@@ -57,7 +57,7 @@ This example demonstrates using MapCompressionModule-function defined in this sa
 		{
 			static void Main(string[] args)
 			{
-				Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
+				Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080"); //" run on localhost.
 				Console.WriteLine("Server started... Press enter to exit.");
 				Console.ReadLine();
 			}
