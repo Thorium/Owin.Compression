@@ -130,14 +130,6 @@ module OwinCompression =
 
             | ContextResponseBody(next) ->
                 async {
-                    if cancellationToken.IsCancellationRequested then 
-                        do! next.Invoke() |> awaitTask
-                        ()
-                    let stream = context.Response.Body
-                    use buffer = new MemoryStream()
-                    context.Response.Body <- buffer
-                    do! next.Invoke() |> awaitTask
-
                     let compressableExtension = 
                         match context.Request.Path.ToString() with
                         | null -> true
@@ -146,10 +138,20 @@ module OwinCompression =
                             typemap.ContainsKey(x.Substring(x.LastIndexOf "."))
                         | _ -> true
 
-                    match (not context.Response.Body.CanSeek) || (not context.Response.Body.CanRead)
-                            || context.Response.Body.Length < settings.MinimumSizeToCompress
-                            || not(compressableExtension)
-                            with
+                    if cancellationToken.IsCancellationRequested 
+                            || not(compressableExtension) 
+                            || context.Request.Path.ToString().Contains("/signalr/") then 
+                        do! next.Invoke() |> awaitTask
+                        ()
+                    else
+
+                    let stream = context.Response.Body
+                    use buffer = new MemoryStream()
+                    context.Response.Body <- buffer
+                    do! next.Invoke() |> awaitTask
+
+                    match (not context.Response.Body.CanSeek) || (not context.Response.Body.CanRead) 
+                          || context.Response.Body.Length < settings.MinimumSizeToCompress with
                     | true -> 
                         if context.Response.Body.CanSeek then
                             context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
