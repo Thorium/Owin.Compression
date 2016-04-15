@@ -113,6 +113,9 @@ module OwinCompression =
                     if(shouldskip) then
                             return! context.Response.WriteAsync(bytes, cancellationToken) |> awaitTask
                     else
+                    
+                    if not(context.Response.Headers.ContainsKey "Vary") then
+                        context.Response.Headers.Add("Vary", [|"Content-Encoding"|])
                     use zipped = 
                         match enc with
                         | Deflate -> 

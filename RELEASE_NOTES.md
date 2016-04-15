@@ -1,3 +1,6 @@
+### 1.0.6 - April 15 2016
+* Added Vary-header.
+
 ### 1.0.5 - April 06 2016
 * Don't compress SignalR requests
 
