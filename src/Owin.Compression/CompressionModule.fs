@@ -115,7 +115,7 @@ module OwinCompression =
                     else
                     
                     if not(context.Response.Headers.ContainsKey "Vary") then
-                        context.Response.Headers.Add("Vary", [|"Content-Encoding"|])
+                        context.Response.Headers.Add("Vary", [|"Accept-Encoding"|])
                     use zipped = 
                         match enc with
                         | Deflate -> 
@@ -165,7 +165,7 @@ module OwinCompression =
                         let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
 
                         if not(context.Response.Headers.ContainsKey "Vary") then
-                            context.Response.Headers.Add("Vary", [|"Content-Encoding"|])
+                            context.Response.Headers.Add("Vary", [|"Accept-Encoding"|])
 
                         use output = new MemoryStream()
 
