@@ -164,6 +164,9 @@ module OwinCompression =
 
                         let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
 
+                        if not(context.Response.Headers.ContainsKey "Vary") then
+                            context.Response.Headers.Add("Vary", [|"Content-Encoding"|])
+
                         use output = new MemoryStream()
 
                         use zipped = 

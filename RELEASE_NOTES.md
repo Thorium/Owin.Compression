@@ -1,3 +1,6 @@
+### 1.0.7 - April 15 2016
+* Added Vary-header part 2.
+
 ### 1.0.6 - April 15 2016
 * Added Vary-header.
 
