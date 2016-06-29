@@ -1,3 +1,6 @@
+### 1.0.9 - June 29 2016
+* Added reference to FSharp.Core
+
 ### 1.0.8 - April 15 2016
 * Added Vary-header part 3.
 

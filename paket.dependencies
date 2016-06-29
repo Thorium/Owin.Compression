@@ -5,6 +5,7 @@ nuget Microsoft.Owin
 nuget Microsoft.Owin.Hosting
 nuget Microsoft.Owin.Host.HttpListener
 nuget Microsoft.Owin.StaticFiles
+nuget FSharp.Core
 
 // nuget Microsoft.AspNet.WebApi.OwinSelfHost
 // nuget Microsoft.Owin.StaticFiles
