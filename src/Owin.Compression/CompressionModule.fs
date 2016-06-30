@@ -27,6 +27,7 @@ type CompressionSettings = {
     CacheExpireTime: DateTimeOffset option;
     AllowedExtensionAndMimeTypes: IEnumerable<string*string>;
     MinimumSizeToCompress: int64;
+    DeflateDisabled: bool;
     }
 
 module OwinCompression =
@@ -37,6 +38,7 @@ module OwinCompression =
         AllowRootDirectories = false;
         CacheExpireTime = None
         MinimumSizeToCompress = 1000L
+        DeflateDisabled = false
         AllowedExtensionAndMimeTypes = 
         [|
             ".js"   , "application/javascript";
@@ -213,7 +215,7 @@ module OwinCompression =
                 | ContextResponseBody(next) ->
                     next.Invoke()
             if String.IsNullOrEmpty(encodings) then WriteAsyncContext()
-            elif encodings.Contains "deflate" then encodeOutput Deflate
+            elif encodings.Contains "deflate" && not(settings.DeflateDisabled) then encodeOutput Deflate
             elif encodings.Contains "gzip" then encodeOutput GZip
             else WriteAsyncContext()
 

@@ -1,3 +1,6 @@
+### 1.0.10 - June 30 2016
+* Added setting option DeflateDisabled
+
 ### 1.0.9 - June 29 2016
 * Added reference to FSharp.Core
 
