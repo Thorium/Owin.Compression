@@ -172,7 +172,7 @@ module OwinCompression =
                                         | false -> context.Response.ContentType.ToLower()
                                         | true -> context.Response.ContentType.Split(';').[0].ToLower()
                                     if settings.AllowedExtensionAndMimeTypes
-                                            |> Seq.map snd 
+                                            |> Seq.map snd |> Seq.append ["text/html"]
                                             |> Seq.contains(contentType) then 
                                         context.Response.Body <- buffer
                                         return true
