@@ -34,7 +34,7 @@ Example #1
 
 This example demonstrates using MapCompressionModule-function defined in this sample library.
 
-    [lang=csharp]
+```csharp
 	using System;
 	using Owin;
 	[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
@@ -63,6 +63,7 @@ This example demonstrates using MapCompressionModule-function defined in this sa
 			}
 		}
 	}
+```
 
 And now your files are smaller than with e.g. just Microsoft.Owin.StaticFiles -library server:
 

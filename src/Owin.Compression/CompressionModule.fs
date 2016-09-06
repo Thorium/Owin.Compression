@@ -65,7 +65,38 @@ module OwinCompression =
     let private defaultBufferSize = 81920
 
     let internal compress (context:IOwinContext) (settings:CompressionSettings) (mode:ResponseMode) =
-        let cancellationToken = context.Request.CallCancelled
+        let cancellationSrc = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(context.Request.CallCancelled)
+        let cancellationToken = cancellationSrc.Token
+
+        let getMd5Hash (item:Stream) =
+            use md5 = System.Security.Cryptography.MD5.Create()
+            BitConverter.ToString(md5.ComputeHash(item)).Replace("-","")
+
+        let create304Response() =
+            if cancellationSrc<>null then cancellationSrc.Cancel()
+            context.Response.StatusCode <- 304
+            context.Response.Body.Close()
+            context.Response.Body <- Stream.Null
+            context.Response.ContentLength <- Nullable()
+            false
+
+        let checkNoValidETag (itemToCheck:Stream) =
+            if context.Request.Headers.ContainsKey("If-None-Match") then
+                if context.Request.Headers.["If-None-Match"] = context.Response.ETag then
+                    create304Response()
+                else
+                
+                let etag = getMd5Hash(itemToCheck)
+                if context.Request.Headers.["If-None-Match"] = etag then
+                    create304Response()
+                else
+                    if String.IsNullOrEmpty context.Response.ETag then
+                        context.Response.ETag <- etag
+                    true
+            else
+                if String.IsNullOrEmpty context.Response.ETag then
+                    context.Response.ETag <- getMd5Hash(itemToCheck)
+                true
 
         let getFile() =
             let unpacked :string = 
@@ -89,15 +120,15 @@ module OwinCompression =
                 let bytes = txt |> System.Text.Encoding.UTF8.GetBytes
                 match FileInfo(unpacked).Length < settings.MinimumSizeToCompress with
                 | true -> 
-                    return true, bytes
+                    return false, bytes
                 | false -> 
                     let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
                     context.Response.Headers.Add("Last-Modified", [|lastmodified|])
-                    if String.IsNullOrEmpty context.Response.ETag then
-                        context.Response.ETag <- (bytes.LongLength.ToString() + lastmodified + unpacked).GetHashCode().ToString()
-                    return false, bytes
+                    if checkNoValidETag(strm.BaseStream) then
+                        return true, bytes
+                    else
+                        return false, null
             }
-
 
         let encodings = context.Request.Headers.["Accept-Encoding"]
         let encodeOutput (enc:SupportedEncodings) = 
@@ -179,10 +210,8 @@ module OwinCompression =
                                     else
                                         return false
                         }
-                    if usecompress then
-                        if String.IsNullOrEmpty context.Response.ETag then
-                            context.Response.ETag <- stream.GetHashCode().ToString()
 
+                    if usecompress && checkNoValidETag(context.Response.Body) then
                         match (not context.Response.Body.CanSeek) || (not context.Response.Body.CanRead) 
                               || context.Response.Body.Length < settings.MinimumSizeToCompress with
                         | true -> 
@@ -239,8 +268,9 @@ module OwinCompression =
                 match mode with
                 | File ->
                     async{
-                        let! _, r = getFile()
-                        return context.Response.WriteAsync(r, cancellationToken) |> Async.AwaitTask
+                        let! comp, r = getFile()
+                        if comp then return context.Response.WriteAsync(r, cancellationToken) |> Async.AwaitTask
+                        else return Async.Sleep 50
                     } |> Async.StartAsTask :> Task
                 | ContextResponseBody(next) ->
                     next.Invoke()

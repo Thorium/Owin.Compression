@@ -1,3 +1,7 @@
+### 1.0.11 - September 06 2016
+* Added compression based on Mime type
+* eTag cache: cancel work if can send 304
+
 ### 1.0.10 - June 30 2016
 * Added setting option DeflateDisabled
 

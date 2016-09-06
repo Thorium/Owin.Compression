@@ -17,4 +17,4 @@ open System
 #load "CompressionModule.fs"
 open Owin
 
-printfn "%s" (DefaultCompressionSettings.ToString())
+printfn "%s" (OwinCompression.DefaultCompressionSettings.ToString())

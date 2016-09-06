@@ -20,7 +20,7 @@ Create new C# console application project (.NET 4.5 or more). Add reference to N
 
 Then write the program, e.g.:
 
-    [lang=csharp]
+```csharp
 	using System;
 	using Owin;
 	[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
@@ -46,7 +46,7 @@ Then write the program, e.g.:
 			}
 		}
 	}
-
+```
 
 Have a large text file in your temp-folder, c:\temp\test\mytempfile.txt
 
@@ -70,11 +70,13 @@ Observe that the file is transfered as compressed but the browser will automatic
 open Owin
 open System
 
+let serverPath = System.Configuration.ConfigurationManager.AppSettings.["WwwRoot"]
+
 type MyWebStartup() =
     member __.Configuration(app:Owin.IAppBuilder) =
         let compressionSetting = 
             {OwinCompression.DefaultCompressionSettings with 
-                ServerPath = System.Configuration.ConfigurationManager.AppSettings.["WwwRoot"]; 
+                ServerPath = serverPath; 
                 CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.) }
         app.MapCompressionModule("/zipped", compressionSetting) |> ignore 
         ()
