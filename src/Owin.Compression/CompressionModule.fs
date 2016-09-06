@@ -93,7 +93,8 @@ module OwinCompression =
                 | false -> 
                     let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
                     context.Response.Headers.Add("Last-Modified", [|lastmodified|])
-                    context.Response.ETag <- (bytes.LongLength.ToString() + lastmodified + unpacked).GetHashCode().ToString()
+                    if String.IsNullOrEmpty context.Response.ETag then
+                        context.Response.ETag <- (bytes.LongLength.ToString() + lastmodified + unpacked).GetHashCode().ToString()
                     return false, bytes
             }
 
@@ -135,72 +136,101 @@ module OwinCompression =
 
             | ContextResponseBody(next) ->
                 async {
-                    let compressableExtension = 
+                    let compressableExtension() = 
                         match context.Request.Path.ToString() with
                         | null -> true
                         | x when x.Contains(".") -> 
                             let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
                             typemap.ContainsKey(x.Substring(x.LastIndexOf "."))
-                        | _ -> true
+                        | _ -> false
 
-                    if cancellationToken.IsCancellationRequested 
-                            || not(compressableExtension) 
-                            || context.Request.Path.ToString().Contains("/signalr/") then 
+                    if cancellationToken.IsCancellationRequested then 
                         do! next.Invoke() |> awaitTask
                         ()
                     else
 
-                    let stream = context.Response.Body
+                    use stream = context.Response.Body
                     use buffer = new MemoryStream()
-                    context.Response.Body <- buffer
-                    do! next.Invoke() |> awaitTask
+                    
+                    let! usecompress =
+                        async {
+                            if compressableExtension() || not(context.Request.Path.ToString().Contains("/signalr/")) then
+                                context.Response.Body <- buffer // stream
+                                do! next.Invoke() |> awaitTask
+                                return true
+                            else
+                                do! next.Invoke() |> awaitTask
+                                if compressableExtension() then // non-stream, but Invoke can change "/" -> "index.html"
+                                    context.Response.Body <- buffer
+                                    return true
+                                elif String.IsNullOrEmpty context.Response.ContentType then 
+                                    return false
+                                else 
+                                    let contentType = 
+                                        // We are not interested of charset, etc:
+                                        match context.Response.ContentType.Contains(";") with
+                                        | false -> context.Response.ContentType.ToLower()
+                                        | true -> context.Response.ContentType.Split(';').[0].ToLower()
+                                    if settings.AllowedExtensionAndMimeTypes
+                                            |> Seq.map snd 
+                                            |> Seq.contains(contentType) then 
+                                        context.Response.Body <- buffer
+                                        return true
+                                    else
+                                        return false
+                        }
+                    if usecompress then
+                        if String.IsNullOrEmpty context.Response.ETag then
+                            context.Response.ETag <- stream.GetHashCode().ToString()
 
-                    match (not context.Response.Body.CanSeek) || (not context.Response.Body.CanRead) 
-                          || context.Response.Body.Length < settings.MinimumSizeToCompress with
-                    | true -> 
-                        if context.Response.Body.CanSeek then
-                            context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
+                        match (not context.Response.Body.CanSeek) || (not context.Response.Body.CanRead) 
+                              || context.Response.Body.Length < settings.MinimumSizeToCompress with
+                        | true -> 
+                            if context.Response.Body.CanSeek then
+                                context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                        do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
-                    | false -> 
+                            do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
+                        | false -> 
 
-                        let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
+                            let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
 
-                        if not(context.Response.Headers.ContainsKey "Vary") then
-                            context.Response.Headers.Add("Vary", [|"Accept-Encoding"|])
+                            if not(context.Response.Headers.ContainsKey "Vary") then
+                                context.Response.Headers.Add("Vary", [|"Accept-Encoding"|])
 
-                        use output = new MemoryStream()
+                            use output = new MemoryStream()
 
-                        use zipped = 
-                            match enc with
-                            | Deflate -> 
-                                context.Response.Headers.Add("Content-Encoding", [|"deflate"|])
-                                new DeflateStream(output, CompressionMode.Compress) :> Stream
-                            | GZip -> 
-                                context.Response.Headers.Add("Content-Encoding", [|"gzip"|])
-                                new GZipStream(output, CompressionMode.Compress) :> Stream
-                        //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
-                        if context.Response.Body.CanSeek then
-                            context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
+                            use zipped = 
+                                match enc with
+                                | Deflate -> 
+                                    context.Response.Headers.Add("Content-Encoding", [|"deflate"|])
+                                    new DeflateStream(output, CompressionMode.Compress) :> Stream
+                                | GZip -> 
+                                    context.Response.Headers.Add("Content-Encoding", [|"gzip"|])
+                                    new GZipStream(output, CompressionMode.Compress) :> Stream
+                            //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
+                            if context.Response.Body.CanSeek then
+                                context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                        do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken) |> awaitTask
+                            do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken) |> awaitTask
                         
-                        zipped.Close()
-                        let op = output.ToArray()
+                            zipped.Close()
+                            let op = output.ToArray()
 
-                        if not(cancellationToken.IsCancellationRequested) then
-                            try
-                                if canStream then
-                                    context.Response.Headers.["Transfer-Encoding"] <- "chunked"
-                                else
-                                    context.Response.ContentLength <- Nullable(op.LongLength)
-                            with | _ -> () // Content length info is not so important...
+                            if not(cancellationToken.IsCancellationRequested) then
+                                try
+                                    if canStream then
+                                        if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
+                                           || context.Response.Headers.["Transfer-Encoding"] <> "chunked" then
+                                            context.Response.Headers.["Transfer-Encoding"] <- "chunked"
+                                    else
+                                        context.Response.ContentLength <- Nullable(op.LongLength)
+                                with | _ -> () // Content length info is not so important...
 
-                        use tmpOutput = new MemoryStream(op)
-                        if tmpOutput.CanSeek then
-                            tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
+                            use tmpOutput = new MemoryStream(op)
+                            if tmpOutput.CanSeek then
+                                tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                        do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
+                            do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
                         return ()
                 } |> Async.StartAsTask :> Task
 
