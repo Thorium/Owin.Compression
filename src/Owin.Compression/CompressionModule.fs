@@ -81,7 +81,8 @@ module OwinCompression =
             false
 
         let checkNoValidETag (itemToCheck:Stream) =
-            if context.Request.Headers.ContainsKey("If-None-Match") then
+            if context.Request.Headers.ContainsKey("If-None-Match") && context.Request.Headers.["If-None-Match"] <> null &&
+               (not(context.Request.Headers.ContainsKey("Pragma")) || context.Request.Headers.["Pragma"] <> "no-cache") then
                 if context.Request.Headers.["If-None-Match"] = context.Response.ETag then
                     create304Response()
                 else
