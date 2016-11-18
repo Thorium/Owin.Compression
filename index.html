@@ -112,6 +112,77 @@
 You can monitor the traffic with e.g. Fiddler.</p>
 <h2><a name="Example-2" class="anchor" href="#Example-2">Example #2</a></h2>
 <p>Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
+and compressing only the ".json"-responses (and files) on-the-fly, with only gzip and not deflate:</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+<span class="l">28: </span>
+<span class="l">29: </span>
+<span class="l">30: </span>
+<span class="l">31: </span>
+<span class="l">32: </span>
+<span class="l">33: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="csharp">  <span class="k">using</span> System;
+  <span class="k">using</span> Owin;
+  [assembly: Microsoft.Owin.OwinStartup(<span class="k">typeof</span>(MyServer.MyWebStartup))]
+  <span class="k">namespace</span> MyServer
+  {
+    <span class="k">class</span> MyWebStartup
+    {
+      <span class="k">public</span> <span class="k">void</span> Configuration(Owin.IAppBuilder app)
+      {
+        <span class="k">var</span> settings <span class="o">=</span> <span class="k">new</span> CompressionSettings(
+          serverPath: <span class="s">""</span>, 
+          allowUnknonwnFiletypes: <span class="k">false</span>,
+          allowRootDirectories: <span class="k">false</span>, 
+          cacheExpireTime: Microsoft.FSharp.Core.FSharpOption&lt;DateTimeOffset&gt;.None, 
+          allowedExtensionAndMimeTypes:
+            <span class="k">new</span>[] { Tuple.Create(<span class="s">".json"</span>, <span class="s">"application/json"</span>) },
+          minimumSizeToCompress: <span class="n">1000</span>, 
+          deflateDisabled: <span class="k">true</span>
+          );
+        app.UseCompressionModule(settings);
+      }
+    }
+
+    <span class="k">class</span> Program
+    {
+      <span class="k">static</span> <span class="k">void</span> Main(<span class="k">string</span>[] args)
+      {
+        Microsoft.Owin.Hosting.WebApp.Start&lt;MyWebStartup&gt;(<span class="s">"http://*:8080"</span>);
+        Console.WriteLine(<span class="s">"Server started... Press enter to exit."</span>);
+        Console.ReadLine();
+      }
+    }
+  }
+</code></pre></td></tr></table>
+<h2><a name="Example-3" class="anchor" href="#Example-3">Example #3</a></h2>
+<p>Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
 and compressing all the responses (and files) on-the-fly. This example is in F-Sharp (and can be run with F#-interactive):</p>
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
 <span class="l"> 2: </span>
