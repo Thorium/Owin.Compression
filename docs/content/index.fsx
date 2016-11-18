@@ -76,6 +76,48 @@ Example #2
 ----------
 
 Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
+and compressing only the ".json"-responses (and files) on-the-fly, with only gzip and not deflate:
+
+```csharp
+	using System;
+	using Owin;
+	[assembly: Microsoft.Owin.OwinStartup(typeof(MyServer.MyWebStartup))]
+	namespace MyServer
+	{
+		class MyWebStartup
+		{
+			public void Configuration(Owin.IAppBuilder app)
+			{
+				var settings = new CompressionSettings(
+					serverPath: "", 
+					allowUnknonwnFiletypes: false,
+					allowRootDirectories: false, 
+					cacheExpireTime: Microsoft.FSharp.Core.FSharpOption<DateTimeOffset>.None, 
+					allowedExtensionAndMimeTypes:
+						new[] { Tuple.Create(".json", "application/json") },
+					minimumSizeToCompress: 1000, 
+					deflateDisabled: true
+					);
+				app.UseCompressionModule(settings);
+			}
+		}
+
+		class Program
+		{
+			static void Main(string[] args)
+			{
+				Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup>("http://*:8080");
+				Console.WriteLine("Server started... Press enter to exit.");
+				Console.ReadLine();
+			}
+		}
+	}
+```
+
+Example #3
+----------
+
+Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
 and compressing all the responses (and files) on-the-fly. This example is in F-Sharp (and can be run with F#-interactive):
 
 *)
