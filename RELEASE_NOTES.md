@@ -1,3 +1,7 @@
+### 1.0.13 - March 08 2017
+* No functionality changes.
+* Dependency updated.
+
 ### 1.0.12 - September 10 2016
 * Respect Pragma no-cache
 
