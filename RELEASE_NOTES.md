@@ -1,3 +1,6 @@
+### 1.0.14 - March 20 2017
+* Minor default config update
+
 ### 1.0.13 - March 08 2017
 * No functionality changes.
 * Dependency updated.
