@@ -31,9 +31,14 @@ type CompressionSettings = {
     }
 
 module OwinCompression =
+#if INTERACTIVE
+    let basePath = __SOURCE_DIRECTORY__;
+#else
+    let basePath = System.Reflection.Assembly.GetExecutingAssembly().Location |> Path.GetDirectoryName
+#endif
     /// Default settings for compression.
     let DefaultCompressionSettings = {
-        ServerPath = __SOURCE_DIRECTORY__;
+        ServerPath = basePath;
         AllowUnknonwnFiletypes = false;
         AllowRootDirectories = false;
         CacheExpireTime = None
@@ -49,6 +54,8 @@ module OwinCompression =
             ".txt"  , "text/plain";
             ".html" , "application/json"; // we don't want to follow hyperlinks, so not "text/html"
             ".map"  , "application/octet-stream";
+            ".ttf"  , "application/x-font-ttf";
+            ".otf"  , "application/x-font-opentype";
         |]
     }
 
