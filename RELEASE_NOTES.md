@@ -1,3 +1,6 @@
+### 1.0.15 - April 26 2017
+* References updated
+
 ### 1.0.14 - March 20 2017
 * Minor default config update
 

@@ -1,6 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    FSharp.Core (4.1)
+    FSharp.Core (4.1.12)
       System.Collections (>= 4.0.11) - framework: >= netstandard16
       System.Console (>= 4.0) - framework: >= netstandard16
       System.Diagnostics.Debug (>= 4.0.11) - framework: >= netstandard16
@@ -27,16 +27,16 @@ NUGET
       System.ValueTuple (>= 4.3) - framework: >= net10, netstandard10, netstandard11, netstandard12, netstandard13, netstandard14, netstandard15
     Microsoft.NETCore.Platforms (1.1) - framework: >= net10, >= netstandard10, netstandard13
     Microsoft.NETCore.Targets (1.1) - framework: >= net10, >= netstandard10, netstandard13
-    Microsoft.Owin (3.0.1)
+    Microsoft.Owin (3.1)
       Owin (>= 1.0)
-    Microsoft.Owin.FileSystems (3.0.1)
-    Microsoft.Owin.Host.HttpListener (3.0.1)
-    Microsoft.Owin.Hosting (3.0.1)
-      Microsoft.Owin (>= 3.0.1)
+    Microsoft.Owin.FileSystems (3.1)
+    Microsoft.Owin.Host.HttpListener (3.1)
+    Microsoft.Owin.Hosting (3.1)
+      Microsoft.Owin (>= 3.1)
       Owin (>= 1.0)
-    Microsoft.Owin.StaticFiles (3.0.1)
-      Microsoft.Owin (>= 3.0.1)
-      Microsoft.Owin.FileSystems (>= 3.0.1)
+    Microsoft.Owin.StaticFiles (3.1)
+      Microsoft.Owin (>= 3.1)
+      Microsoft.Owin.FileSystems (>= 3.1)
       Owin (>= 1.0)
     Owin (1.0)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3) - framework: >= netstandard16
@@ -282,12 +282,12 @@ NUGET
       Microsoft.NETCore.Targets (>= 1.1) - framework: >= netstandard13
       System.Runtime (>= 4.3) - framework: >= netstandard13
     System.Runtime.InteropServices (4.3) - framework: >= netstandard16
-      Microsoft.NETCore.Platforms (>= 1.1) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15
-      Microsoft.NETCore.Targets (>= 1.1) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15
-      System.Reflection (>= 4.3) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15
-      System.Reflection.Primitives (>= 4.3) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15
-      System.Runtime (>= 4.3) - framework: net462, >= net463, dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15
-      System.Runtime.Handles (>= 4.3) - framework: dnxcore50, netstandard13, >= netstandard15
+      Microsoft.NETCore.Platforms (>= 1.1) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15, netcore11
+      Microsoft.NETCore.Targets (>= 1.1) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15, netcore11
+      System.Reflection (>= 4.3) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15, netcore11
+      System.Reflection.Primitives (>= 4.3) - framework: dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15, netcore11
+      System.Runtime (>= 4.3) - framework: net462, >= net463, dnxcore50, netstandard11, netstandard12, netstandard13, >= netstandard15, netcore11
+      System.Runtime.Handles (>= 4.3) - framework: dnxcore50, netstandard13, >= netstandard15, netcore11
     System.Runtime.Numerics (4.3) - framework: >= netstandard16
       System.Globalization (>= 4.3) - framework: dnxcore50, >= netstandard13
       System.Resources.ResourceManager (>= 4.3) - framework: dnxcore50, >= netstandard13
@@ -348,7 +348,7 @@ NUGET
       System.Security.Cryptography.Primitives (>= 4.3) - framework: >= netstandard13
       System.Text.Encoding (>= 4.3) - framework: >= netstandard13
     System.Security.Cryptography.OpenSsl (4.3) - framework: >= netstandard16
-      runtime.native.System.Security.Cryptography.OpenSsl (>= 4.3)
+      runtime.native.System.Security.Cryptography.OpenSsl (>= 4.3) - framework: >= net463, >= netstandard16, monoandroid, monotouch, xamarinios, xamarinmac
       System.Collections (>= 4.3) - framework: >= netstandard16
       System.IO (>= 4.3) - framework: >= net463, >= netstandard16
       System.Resources.ResourceManager (>= 4.3) - framework: >= netstandard16
@@ -403,7 +403,7 @@ NUGET
       System.Collections (>= 4.3) - framework: dnxcore50, >= netstandard16
       System.Globalization (>= 4.3) - framework: dnxcore50, >= netstandard16
       System.Resources.ResourceManager (>= 4.3) - framework: dnxcore50, >= netstandard16
-      System.Runtime (>= 4.3) - framework: dnxcore50, netstandard10, netstandard13, >= netstandard16
+      System.Runtime (>= 4.3) - framework: dnxcore50, netstandard10, netstandard13, >= netstandard16, netcore11
       System.Runtime.Extensions (>= 4.3) - framework: dnxcore50, >= netstandard16
       System.Threading (>= 4.3) - framework: dnxcore50, >= netstandard16
     System.Threading (4.3) - framework: >= netstandard16
@@ -439,7 +439,7 @@ NUGET
 GROUP Build
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.23.1)
+    FAKE (4.58.6)
     FSharp.Compiler.Service (2.0.0.6)
     FSharp.Formatting (2.14.4)
       FSharp.Compiler.Service (2.0.0.6)
@@ -452,12 +452,12 @@ NUGET
     Microsoft.Net.Http (2.2.29) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl (>= 1.1.10)
       Microsoft.Bcl.Build (>= 1.0.14)
-    Octokit (0.22)
+    Octokit (0.24)
       Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
     SourceLink.Fake (1.1)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (73589a85a5e30a2c78d61efccdd3446a99483142)
+    modules/Octokit/Octokit.fsx (dad2dec00064233e9742b458d96fe64708f3be8a)
       Octokit (>= 0.20)
 GROUP Test
 NUGET
