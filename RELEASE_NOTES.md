@@ -1,3 +1,6 @@
+### 1.0.16 - June 09 2017
+* References updated
+
 ### 1.0.15 - April 26 2017
 * References updated
 
