@@ -105,15 +105,6 @@ Target "AssemblyInfo" (fun _ ->
         )
 )
 
-// Copies binaries from default VS location to expected bin folder
-// But keeps a subdirectory structure for each project in the
-// src folder to support multiple project outputs
-Target "CopyBinaries" (fun _ ->
-    !! "src/**/*.??proj"
-    -- "src/**/*.shproj"
-    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) </> "bin/Release", "bin" </> (System.IO.Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> CopyDir toDir fromDir (fun _ -> true))
-)
 
 // --------------------------------------------------------------------------------------
 // Clean build results
@@ -139,6 +130,20 @@ Target "Build" (fun _ ->
     |> ignore
 )
 
+Target "BuildCore" (fun _ ->
+    // Build .NET Core solution
+    if not isMono then // Mono dotnet build is not tested yet...
+        DotNetCli.Restore(fun p -> 
+            { p with 
+                Project = "src\Owin.Compression.Standard\Owin.Compression.Standard.fsproj"
+                NoCache = true})
+
+        DotNetCli.Build(fun p -> 
+            { p with 
+                Project = "src\Owin.Compression.Standard\Owin.Compression.Standard.fsproj"
+                Configuration = "Release"})
+
+)
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
 
@@ -375,7 +380,7 @@ Target "All" DoNothing
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
-  ==> "CopyBinaries"
+  ==> "BuildCore"
   ==> "RunTests"
   ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"

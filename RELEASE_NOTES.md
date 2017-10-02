@@ -1,3 +1,7 @@
+### 1.0.17 - Octiober 02 2017
+* Fix for Owin dependency #7
+* Initial conversion for .NET Standard 2.0 using Microsoft.AspNetCore.Http, not tested yet.
+
 ### 1.0.16 - June 09 2017
 * References updated
 

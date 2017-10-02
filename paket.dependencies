@@ -1,11 +1,18 @@
 source https://nuget.org/api/v2
 
-nuget Owin
+nuget Owin >= 1.0
 nuget Microsoft.Owin
 nuget Microsoft.Owin.Hosting
 nuget Microsoft.Owin.Host.HttpListener
 nuget Microsoft.Owin.StaticFiles
 nuget FSharp.Core
+
+group standard
+  source https://nuget.org/api/v2
+
+  nuget Microsoft.AspNetCore.Http.Abstractions
+  nuget Microsoft.AspNetCore.Http.Features
+  nuget Microsoft.Extensions.Primitives
 
 // nuget Microsoft.AspNet.WebApi.OwinSelfHost
 // nuget Microsoft.Owin.StaticFiles
