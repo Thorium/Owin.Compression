@@ -76,8 +76,18 @@ module OwinCompression =
         let cancellationToken = cancellationSrc.Token
 
         let getMd5Hash (item:Stream) =
+            let hasPos = 
+                if item.CanSeek && item.Position > 0L then
+                    let tmp = item.Position
+                    item.Position <- 0L
+                    Some tmp
+                else None
             use md5 = System.Security.Cryptography.MD5.Create()
-            BitConverter.ToString(md5.ComputeHash(item)).Replace("-","")
+            let res = BitConverter.ToString(md5.ComputeHash(item)).Replace("-","")
+            match hasPos with
+            | Some x when item.CanSeek -> item.Position <- x
+            | _ -> ()
+            res
 
         let create304Response() =
             if cancellationSrc<>null then cancellationSrc.Cancel()

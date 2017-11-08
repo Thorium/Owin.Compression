@@ -1,4 +1,7 @@
-### 1.0.17 - Octiober 02 2017
+### 1.0.18 - November 08 2017
+* Fix for stream ETAGs #8
+
+### 1.0.17 - October 02 2017
 * Fix for Owin dependency #7
 * Initial conversion for .NET Standard 2.0 using Microsoft.AspNetCore.Http, not tested yet.
 
