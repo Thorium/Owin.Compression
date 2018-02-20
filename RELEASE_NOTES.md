@@ -1,3 +1,6 @@
+### 1.0.19 - February 20 2018
+* References updated
+
 ### 1.0.18 - November 08 2017
 * Fix for stream ETAGs #8
 
