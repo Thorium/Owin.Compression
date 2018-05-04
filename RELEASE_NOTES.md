@@ -1,3 +1,6 @@
+### 1.0.20 - February 20 2018
+* Check for cancellation token before reading headers
+
 ### 1.0.19 - February 20 2018
 * References updated
 
