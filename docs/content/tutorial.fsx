@@ -3,9 +3,9 @@
 // it to define helpers that you do not want to show in the documentation.
 #I "../../bin"
 #I @"./../../packages/Owin/lib/net40"
-#I @"./../../packages/Microsoft.Owin/lib/net45" 
-#I @"./../../packages/Microsoft.Owin.Hosting/lib/net45"
-#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net45"
+#I @"./../../packages/Microsoft.Owin/lib/net451" 
+#I @"./../../packages/Microsoft.Owin.Hosting/lib/net451"
+#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net451"
 #I @"./../../bin/Owin.Compression"
 
 (**

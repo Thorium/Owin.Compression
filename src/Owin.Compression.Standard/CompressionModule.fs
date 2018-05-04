@@ -157,7 +157,9 @@ module OwinCompression =
                         return false, null
             }
 
-        let encodings = context.Request.Headers.["Accept-Encoding"].ToString()
+        let encodings = 
+            if cancellationToken.IsCancellationRequested then "" 
+            else context.Request.Headers.["Accept-Encoding"].ToString()
         let encodeOutput (enc:SupportedEncodings) = 
 
             match settings.CacheExpireTime with
