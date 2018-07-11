@@ -1,3 +1,6 @@
+### 1.0.21 - July 11 2018
+* Reference component update
+
 ### 1.0.20 - February 20 2018
 * Check for cancellation token before reading headers
 
