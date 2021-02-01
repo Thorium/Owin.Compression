@@ -1,3 +1,6 @@
+### 1.0.22 - February 01 2021
+* Reference component update
+
 ### 1.0.21 - July 11 2018
 * Reference component update
 
