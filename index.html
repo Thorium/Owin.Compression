@@ -146,6 +146,7 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
 <span class="l">31: </span>
 <span class="l">32: </span>
 <span class="l">33: </span>
+<span class="l">34: </span>
 </pre></td>
 <td class="snippet"><pre class="fssnip highlighted"><code lang="csharp">  <span class="k">using</span> System;
   <span class="k">using</span> Owin;
@@ -164,7 +165,8 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
           allowedExtensionAndMimeTypes:
             <span class="k">new</span>[] { Tuple.Create(<span class="s">".json"</span>, <span class="s">"application/json"</span>) },
           minimumSizeToCompress: <span class="n">1000</span>, 
-          deflateDisabled: <span class="k">true</span>
+          deflateDisabled: <span class="k">true</span>,
+          brotliDisabled: <span class="k">true</span>,
           );
         app.UseCompressionModule(settings);
       }
