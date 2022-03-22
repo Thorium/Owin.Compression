@@ -232,7 +232,9 @@ module OwinCompression =
                         }
 
                     if usecompress && checkNoValidETag(context.Response.Body) then
-                        let isAlreadyCompressed = not(String.IsNullOrWhiteSpace(context.Response.Headers.["Content-Encoding"]));
+                        let isAlreadyCompressed = 
+                            context.Response.Headers.ContainsKey("Content-Encoding") &&
+                            not(String.IsNullOrWhiteSpace(context.Response.Headers.["Content-Encoding"]))
                         match (not context.Response.Body.CanSeek) || (not context.Response.Body.CanRead) 
                               || context.Response.Body.Length < settings.MinimumSizeToCompress
                               || isAlreadyCompressed with
