@@ -1,3 +1,6 @@
+### 1.0.25 - June 17 2022
+* Reference component update
+
 ### 1.0.24 - March 22 2022
 * Fix for avoiding double compression
 
