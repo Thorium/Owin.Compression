@@ -1,5 +1,6 @@
 ### 1.0.25 - June 17 2022
 * Reference component update
+* Better performance via F# 6.0 tasks
 
 ### 1.0.24 - March 22 2022
 * Fix for avoiding double compression
