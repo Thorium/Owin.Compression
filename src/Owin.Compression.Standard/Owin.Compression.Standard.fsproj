@@ -7,6 +7,7 @@
     <OutputPath>..\..\bin</OutputPath>
     <AssemblyName>Owin.Compression</AssemblyName>
     <Name>Owin.Compression</Name>
+    <TargetFSharpCoreVersion>6.0.0.0</TargetFSharpCoreVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="mscorlib" />
@@ -21,8 +22,11 @@
     <Compile Include="CompressionModule.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="6.0.5" />
   </ItemGroup>
 </Project>

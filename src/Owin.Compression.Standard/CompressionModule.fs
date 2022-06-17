@@ -77,7 +77,6 @@ module OwinCompression =
     let DefaultCompressionSettingsWithPathAndCache(path,cachetime) = 
         {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = Some (cachetime) }
 
-    let internal awaitTask = Async.AwaitIAsyncResult >> Async.Ignore
     let private defaultBufferSize = 81920
 
     let internal compress (context:HttpContext) (settings:CompressionSettings) (mode:ResponseMode) =
@@ -141,9 +140,9 @@ module OwinCompression =
             | false when settings.AllowUnknonwnFiletypes -> ()
             | _ -> failwith "Invalid resource type"
 
-            async {
+            task {
                 use strm = File.OpenText unpacked
-                let! txt = strm.ReadToEndAsync() |> Async.AwaitTask
+                let! txt = strm.ReadToEndAsync()
                 let bytes = txt |> System.Text.Encoding.UTF8.GetBytes
                 match FileInfo(unpacked).Length < settings.MinimumSizeToCompress with
                 | true -> 
@@ -168,13 +167,13 @@ module OwinCompression =
 
             match mode with
             | File ->
-                async {
+                task {
                     if cancellationToken.IsCancellationRequested then ()
                     use output = new MemoryStream()
                     let! awaited = getFile()
                     let shouldskip, bytes = awaited
                     if(shouldskip) then
-                            return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(bytes), cancellationToken) |> awaitTask
+                            return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(bytes), cancellationToken)
                     else
                     
                     if not(context.Response.Headers.ContainsKey "Vary") then
@@ -187,15 +186,15 @@ module OwinCompression =
                         | GZip -> 
                             context.Response.Headers.Add("Content-Encoding", StringValues("gzip"))
                             new GZipStream(output, CompressionMode.Compress) :> Stream
-                    let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
+                    let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
                     t1 |> ignore
                     zipped.Close()
                     let op = output.ToArray()
-                    return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(op), cancellationToken) |> awaitTask
-                } |> Async.StartAsTask :> Task
+                    return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(op), cancellationToken)
+                } :> Task
 
             | ContextResponseBody(next) ->
-                async {
+                task {
                     let compressableExtension() = 
                         match context.Request.Path.ToString() with
                         | null -> true
@@ -205,7 +204,7 @@ module OwinCompression =
                         | _ -> false
 
                     if cancellationToken.IsCancellationRequested then 
-                        do! next.Invoke() |> awaitTask
+                        do! next.Invoke()
                         ()
                     else
 
@@ -213,13 +212,13 @@ module OwinCompression =
                     use buffer = new MemoryStream()
                     
                     let! usecompress =
-                        async {
+                        task {
                             if compressableExtension() || not(context.Request.Path.ToString().Contains("/signalr/")) then
                                 context.Response.Body <- buffer // stream
-                                do! next.Invoke() |> awaitTask
+                                do! next.Invoke()
                                 return true
                             else
-                                do! next.Invoke() |> awaitTask
+                                do! next.Invoke()
                                 if compressableExtension() then // non-stream, but Invoke can change "/" -> "index.html"
                                     context.Response.Body <- buffer
                                     return true
@@ -251,7 +250,7 @@ module OwinCompression =
                             if context.Response.Body.CanSeek then
                                 context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                            do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
+                            do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken)
                         | false -> 
 
                             let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
@@ -269,11 +268,11 @@ module OwinCompression =
                                 | GZip -> 
                                     context.Response.Headers.Add("Content-Encoding", StringValues("gzip"))
                                     new GZipStream(output, CompressionMode.Compress) :> Stream
-                            //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken) |> awaitTask
+                            //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
                             if context.Response.Body.CanSeek then
                                 context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                            do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken) |> awaitTask
+                            do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
                         
                             zipped.Close()
                             let op = output.ToArray()
@@ -292,19 +291,19 @@ module OwinCompression =
                             if tmpOutput.CanSeek then
                                 tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                            do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken) |> awaitTask
+                            do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken)
                         return ()
-                } |> Async.StartAsTask :> Task
+                } :> Task
 
         let encodeTask() =
             let WriteAsyncContext() =
                 match mode with
                 | File ->
-                    async{
+                    task {
                         let! comp, r = getFile()
-                        if comp then return context.Response.WriteAsync(System.Text.Encoding.Default.GetString(r), cancellationToken) |> Async.AwaitTask
-                        else return Async.Sleep 50
-                    } |> Async.StartAsTask :> Task
+                        if comp then return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(r), cancellationToken)
+                        else return! Task.Delay 50 
+                    } :> Task
                 | ContextResponseBody(next) ->
                     next.Invoke()
             if String.IsNullOrEmpty(encodings) then WriteAsyncContext()
@@ -336,7 +335,6 @@ type CompressionExtensions =
         app.Map(path, fun ap ->
          ap.Run(fun context ->
             (compress context settings ResponseMode.File)() 
-            |> awaitTask |> Async.StartAsTask :> _
         ))
 
     /// You can set a path that is url that will be captured.
