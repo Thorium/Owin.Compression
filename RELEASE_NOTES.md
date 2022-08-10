@@ -1,5 +1,6 @@
-### 1.0.27 - August 10 2022
+### 1.0.28 - August 10 2022
 * VS2022 update
+* Fixed task compilation
 
 ### 1.0.26 - June 17 2022
 * Reference component update
