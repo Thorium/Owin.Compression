@@ -185,51 +185,55 @@ module OwinCompression =
                 } :> Task
 
             | ContextResponseBody(next) ->
-                task {
-                    let compressableExtension() = 
-                        match context.Request.Path.ToString() with
-                        | null -> true
-                        | x when x.Contains(".") -> 
-                            let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
-                            typemap.ContainsKey(x.Substring(x.LastIndexOf "."))
-                        | _ -> false
+                let compressableExtension() = 
+                    match context.Request.Path.ToString() with
+                    | null -> true
+                    | x when x.Contains(".") -> 
+                        let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
+                        typemap.ContainsKey(x.Substring(x.LastIndexOf "."))
+                    | _ -> false
 
-                    if cancellationToken.IsCancellationRequested then 
+                if cancellationToken.IsCancellationRequested then 
+                    task {
                         do! next.Invoke()
-                        ()
-                    else
+                        return ()
+                    }
+                else
 
-                    use stream = context.Response.Body
-                    use buffer = new MemoryStream()
-                    
-                    let! usecompress =
+                use stream = context.Response.Body
+                use buffer = new MemoryStream()
+                let userCompress() = 
+                    if compressableExtension() || not(context.Request.Path.ToString().Contains("/signalr/")) then
+                        context.Response.Body <- buffer // stream
                         task {
-                            if compressableExtension() || not(context.Request.Path.ToString().Contains("/signalr/")) then
-                                context.Response.Body <- buffer // stream
-                                do! next.Invoke()
-                                return true
-                            else
-                                do! next.Invoke()
-                                if compressableExtension() then // non-stream, but Invoke can change "/" -> "index.html"
-                                    context.Response.Body <- buffer
-                                    return true
-                                elif String.IsNullOrEmpty context.Response.ContentType then 
-                                    return false
-                                else 
-                                    let contentType = 
-                                        // We are not interested of charset, etc:
-                                        match context.Response.ContentType.Contains(";") with
-                                        | false -> context.Response.ContentType.ToLower()
-                                        | true -> context.Response.ContentType.Split(';').[0].ToLower()
-                                    if settings.AllowedExtensionAndMimeTypes
-                                            |> Seq.map snd |> Seq.append ["text/html"]
-                                            |> Seq.contains(contentType) then 
-                                        context.Response.Body <- buffer
-                                        return true
-                                    else
-                                        return false
+                            do! next.Invoke()
+                            return true
                         }
-
+                    else
+                        let continuation1() =
+                            if compressableExtension() then // non-stream, but Invoke can change "/" -> "index.html"
+                                context.Response.Body <- buffer
+                                true
+                            elif String.IsNullOrEmpty context.Response.ContentType then 
+                                false
+                            else 
+                                let contentType = 
+                                    // We are not interested of charset, etc:
+                                    match context.Response.ContentType.Contains(";") with
+                                    | false -> context.Response.ContentType.ToLower()
+                                    | true -> context.Response.ContentType.Split(';').[0].ToLower()
+                                if settings.AllowedExtensionAndMimeTypes
+                                        |> Seq.map snd |> Seq.append ["text/html"]
+                                        |> Seq.contains(contentType) then 
+                                    context.Response.Body <- buffer
+                                    true
+                                else
+                                    false
+                        task {
+                            do! next.Invoke()
+                            return continuation1()
+                        }
+                let continuation2 (usecompress:bool) =
                     if usecompress && checkNoValidETag(context.Response.Body) then
                         let isAlreadyCompressed = 
                             context.Response.Headers.ContainsKey("Content-Encoding") &&
@@ -241,7 +245,10 @@ module OwinCompression =
                             if context.Response.Body.CanSeek then
                                 context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                            do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken)
+                            task {
+                                do! context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken)
+                                return ()
+                            }
                         | false -> 
 
                             let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
@@ -263,27 +270,35 @@ module OwinCompression =
                             if context.Response.Body.CanSeek then
                                 context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                            do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
+                            task {
+                                do! context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
                         
-                            zipped.Close()
-                            let op = output.ToArray()
+                                zipped.Close()
+                                let op = output.ToArray()
 
-                            if not(cancellationToken.IsCancellationRequested) then
-                                try
-                                    if canStream then
-                                        if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
-                                           || context.Response.Headers.["Transfer-Encoding"] <> "chunked" then
-                                            context.Response.Headers.["Transfer-Encoding"] <- "chunked"
-                                    else
-                                        context.Response.ContentLength <- Nullable(op.LongLength)
-                                with | _ -> () // Content length info is not so important...
+                                if not(cancellationToken.IsCancellationRequested) then
+                                    try
+                                        if canStream then
+                                            if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
+                                               || context.Response.Headers.["Transfer-Encoding"] <> "chunked" then
+                                                context.Response.Headers.["Transfer-Encoding"] <- "chunked"
+                                        else
+                                            context.Response.ContentLength <- Nullable(op.LongLength)
+                                    with | _ -> () // Content length info is not so important...
 
-                            use tmpOutput = new MemoryStream(op)
-                            if tmpOutput.CanSeek then
-                                tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
+                                use tmpOutput = new MemoryStream(op)
+                                if tmpOutput.CanSeek then
+                                    tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                            do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken)
-                        return ()
+                                do! tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken)
+                                return ()
+                            }
+                    else 
+                        task { return () }
+
+                task {
+                    let! usecompress = userCompress()
+                    return continuation2 usecompress
                 } :> Task
 
         let encodeTask() =

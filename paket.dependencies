@@ -29,6 +29,10 @@ group Build
 group Test
   source https://nuget.org/api/v2
 
-  nuget NUnit ~> 2
-  nuget NUnit.Runners ~> 2
+  nuget xunit.core
+  nuget xunit.abstractions
+  nuget xunit.runner.visualstudio >= 2.0 version_in_path: true
+  nuget xunit.runner.console
+  nuget FsUnit.xUnit
+  
 

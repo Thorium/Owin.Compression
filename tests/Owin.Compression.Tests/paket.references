@@ -5,5 +5,7 @@ Microsoft.Owin.Hosting
 Microsoft.Owin.Host.HttpListener
 
 group Test
-NUnit
-NUnit.Runners
+FsUnit.xUnit
+xunit.abstractions
+xunit.core
+xunit.runner.visualstudio

@@ -110,7 +110,7 @@ Target "AssemblyInfo" (fun _ ->
 // Clean build results
 
 Target "Clean" (fun _ ->
-    CleanDirs ["bin"; "temp"]
+    CleanDirs ["bin"; "temp"; "obj"]
 )
 
 Target "CleanDocs" (fun _ ->
@@ -121,13 +121,16 @@ Target "CleanDocs" (fun _ ->
 // Build library & test project
 
 Target "Build" (fun _ ->
-    !! solutionFile
-#if MONO
-    |> MSBuildReleaseExt "" [ ("DefineConstants","MONO") ] "Rebuild"
-#else
-    |> MSBuildRelease "" "Rebuild"
-#endif
-    |> ignore
+
+    DotNetCli.Restore(fun p -> 
+        { p with 
+            Project = "Owin.Compression.sln"
+            NoCache = true})
+
+    DotNetCli.Build(fun p -> 
+        { p with 
+            Project = "Owin.Compression.sln"
+            Configuration = "Release"})
 )
 
 Target "BuildCore" (fun _ ->
@@ -149,11 +152,7 @@ Target "BuildCore" (fun _ ->
 
 Target "RunTests" (fun _ ->
     !! testAssemblies
-    |> NUnit (fun p ->
-        { p with
-            DisableShadowCopy = true
-            TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "TestResults.xml" })
+    |> xUnit (fun p -> p)
 )
 
 #if MONO
@@ -382,7 +381,7 @@ Target "All" DoNothing
   ==> "Build"
   ==> "BuildCore"
   ==> "RunTests"
-  ==> "GenerateReferenceDocs"
+  //==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
   ==> "All"
   =?> ("ReleaseDocs",isLocalBuild)
@@ -396,8 +395,8 @@ Target "All" DoNothing
   ==> "BuildPackage"
 
 "CleanDocs"
-  ==> "GenerateHelp"
-  ==> "GenerateReferenceDocs"
+  //==> "GenerateHelp"
+  //==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
 
 "CleanDocs"

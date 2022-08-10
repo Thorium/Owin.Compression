@@ -598,5 +598,34 @@ NUGET
 GROUP Test
 NUGET
   remote: https://www.nuget.org/api/v2
-    NUnit (2.7.1)
-    NUnit.Runners (2.7.1)
+    FSharp.Core (6.0.5) - restriction: >= netstandard2.0
+    FsUnit.xUnit (5.0.1)
+      FSharp.Core (>= 5.0.2) - restriction: >= netstandard2.0
+      NETStandard.Library (>= 2.0.3) - restriction: >= netstandard2.0
+      NHamcrest (>= 2.0.1 < 2.1) - restriction: >= netstandard2.0
+      xunit (>= 2.4.2 < 2.5) - restriction: >= netstandard2.0
+    Microsoft.NETCore.Platforms (6.0.5) - restriction: || (&& (>= net45) (< netstandard1.3) (>= netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (&& (>= net46) (< netstandard1.4) (>= netstandard2.0)) (&& (>= net461) (>= netstandard2.0)) (>= netcoreapp2.0) (&& (< netstandard1.0) (>= netstandard2.0) (< portable-net45+win8)) (&& (< netstandard1.0) (>= netstandard2.0) (>= win8)) (&& (< netstandard1.0) (>= netstandard2.0) (< win8)) (&& (< netstandard1.3) (>= netstandard2.0) (< win8) (>= wpa81)) (&& (< netstandard1.5) (>= netstandard2.0) (>= uap10.0)) (&& (>= netstandard2.0) (< portable-net45+win8+wpa81)) (&& (>= netstandard2.0) (>= uap10.1)) (&& (>= netstandard2.0) (>= wp8))
+    NETStandard.Library (2.0.3) - restriction: || (&& (< net35) (>= netstandard1.0)) (&& (< net452) (>= netstandard1.1)) (>= netstandard2.0)
+      Microsoft.NETCore.Platforms (>= 1.1) - restriction: || (&& (>= net45) (< netstandard1.3)) (&& (< net45) (>= netstandard1.1) (< netstandard1.2) (< win8)) (&& (< net45) (>= netstandard1.2) (< netstandard1.3) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81)) (&& (< net45) (>= netstandard2.0)) (&& (>= net46) (< netstandard1.4)) (>= net461) (>= netcoreapp2.0) (&& (>= netstandard1.0) (< portable-net45+win8+wpa81)) (&& (< netstandard1.0) (>= portable-net45+win8) (< win8)) (&& (< netstandard1.0) (< portable-net45+win8) (>= portable-net45+win8+wpa81)) (&& (< netstandard1.0) (>= portable-net45+win8+wp8+wpa81) (< portable-net45+win8+wpa81)) (&& (< netstandard1.0) (>= win8)) (&& (< netstandard1.3) (< win8) (>= wpa81)) (&& (< netstandard1.5) (>= uap10.0)) (>= uap10.1) (>= wp8)
+    NHamcrest (2.0.1) - restriction: >= netstandard2.0
+      NETStandard.Library (>= 1.6.1) - restriction: && (< net451) (>= netstandard1.5)
+    xunit (2.4.2) - restriction: >= netstandard2.0
+      xunit.analyzers (>= 1.0)
+      xunit.assert (>= 2.4.2)
+      xunit.core (2.4.2)
+    xunit.abstractions (2.0.3)
+      NETStandard.Library (>= 1.6) - restriction: && (< net35) (>= netstandard1.0) (< netstandard2.0)
+    xunit.analyzers (1.0) - restriction: >= netstandard2.0
+    xunit.assert (2.4.2) - restriction: >= netstandard2.0
+      NETStandard.Library (>= 1.6.1) - restriction: && (< net452) (>= netstandard1.1)
+    xunit.core (2.4.2)
+      xunit.extensibility.core (2.4.2)
+      xunit.extensibility.execution (2.4.2)
+    xunit.extensibility.core (2.4.2)
+      NETStandard.Library (>= 1.6.1) - restriction: && (< net452) (>= netstandard1.1)
+      xunit.abstractions (>= 2.0.3) - restriction: >= netstandard1.1
+    xunit.extensibility.execution (2.4.2)
+      NETStandard.Library (>= 1.6.1) - restriction: && (< net452) (>= netstandard1.1)
+      xunit.extensibility.core (2.4.2) - restriction: >= netstandard1.1
+    xunit.runner.console (2.4.2)
+    xunit.runner.visualstudio (2.4.5) - version_in_path: true
