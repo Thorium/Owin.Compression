@@ -28,10 +28,10 @@ dependencies
     Microsoft.Owin ~> LOCKEDVERSION
   framework: netstandard20
     FSharp.Core ~> LOCKEDVERSION
-	NETStandard.Library 2.0.0
-    Microsoft.AspNetCore.Http.Abstractions 2.0.0
-    Microsoft.AspNetCore.Http.Features 2.0.0
-    Microsoft.Extensions.Primitives 2.0.0
+	NETStandard.Library ~> LOCKEDVERSION
+    Microsoft.AspNetCore.Http.Abstractions ~> LOCKEDVERSION
+    Microsoft.AspNetCore.Http.Features ~> LOCKEDVERSION
+    Microsoft.Extensions.Primitives ~> LOCKEDVERSION
 files
 	../../bin/**/Owin.Compression.dll
 	../../bin/**/Owin.Compression.xml

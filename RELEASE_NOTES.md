@@ -1,3 +1,6 @@
+### 1.0.29 - August 11 2022
+* Package dependency update
+
 ### 1.0.28 - August 10 2022
 * VS2022 update
 * Fixed task compilation
