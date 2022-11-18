@@ -2,6 +2,7 @@
 # Owin.Compression
 
 Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipeline.
+Can be used also with AspNetCore e.g. with .NET6.0 and Kestrel.
 
 With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to reduce amount of web traffic.
 
