@@ -96,6 +96,7 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
 					allowedExtensionAndMimeTypes:
 						new[] { Tuple.Create(".json", "application/json") },
 					minimumSizeToCompress: 1000, 
+					streamingDisabled: false,
 					deflateDisabled: true
 					);
 				app.UseCompressionModule(settings);
@@ -114,7 +115,7 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
 	}
 ```
 
-Example #3
+Example #4
 ----------
 
 Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
@@ -145,6 +146,45 @@ Console.ReadLine() |> ignore
 server.Dispose()
 
 (**
+
+Example #5
+----------
+
+Running on ASP.NET Core web API on .NET 6.0. You can use C# but this example is in F#
+just because shorter syntax. The full project is available at tests-folder:
+
+*)
+
+namespace Aspnet.Core.WebAPI
+
+open System
+open Microsoft.AspNetCore.Builder
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Hosting
+open Owin
+
+module Program =
+
+    [<EntryPoint>]
+    let main args =
+
+        let builder = WebApplication.CreateBuilder args
+        builder.Services.AddControllers() |> ignore
+        let app = builder.Build()
+
+        let compressionSetting = 
+            {OwinCompression.DefaultCompressionSettings with 
+                CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
+                AllowUnknonwnFiletypes = true
+                StreamingDisabled = true
+            }
+        (app :> IApplicationBuilder).UseCompressionModule(compressionSetting) |> ignore 
+        app.MapControllers() |> ignore
+        app.Run()
+        0
+
+(**
+
 
 More complete example can be found <a href="https://github.com/Thorium/WebsitePlayground">here</a>.
 

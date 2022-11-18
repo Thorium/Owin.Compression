@@ -28,6 +28,7 @@ type CompressionSettings = {
     AllowedExtensionAndMimeTypes: IEnumerable<string*string>;
     MinimumSizeToCompress: int64;
     DeflateDisabled: bool;
+    StreamingDisabled: bool;
     }
 
 module OwinCompression =
@@ -44,6 +45,7 @@ module OwinCompression =
         CacheExpireTime = None
         MinimumSizeToCompress = 1000L
         DeflateDisabled = false
+        StreamingDisabled = false
         AllowedExtensionAndMimeTypes = 
         [|
             ".js"   , "application/javascript";
@@ -181,7 +183,29 @@ module OwinCompression =
                     t1 |> ignore
                     zipped.Close()
                     let op = output.ToArray()
-                    return! context.Response.WriteAsync(op, cancellationToken)
+
+                    let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
+
+                    let doStream = 
+                        if not(cancellationToken.IsCancellationRequested) then
+                            try
+                                if canStream && (int64 defaultBufferSize) < op.LongLength then
+                                    if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
+                                        || context.Response.Headers.["Transfer-Encoding"] <> "chunked" then
+                                        context.Response.Headers.["Transfer-Encoding"] <- "chunked"
+                                    true
+                                else
+                                    context.Response.ContentLength <- Nullable(op.LongLength)
+                                    false
+
+                            with | _ -> 
+                                false // Content length info is not so important...
+                        else false
+
+                    if doStream then
+                        return! zipped.CopyToAsync(context.Response.Body, defaultBufferSize, cancellationToken)
+                    else
+                        return! context.Response.WriteAsync(op, cancellationToken)
                 } :> Task
 
             | ContextResponseBody(next) ->
@@ -269,7 +293,7 @@ module OwinCompression =
 
                             if not(cancellationToken.IsCancellationRequested) then
                                 try
-                                    if canStream then
+                                    if canStream && (int64 defaultBufferSize) < op.LongLength then
                                         if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
                                             || context.Response.Headers.["Transfer-Encoding"] <> "chunked" then
                                             context.Response.Headers.["Transfer-Encoding"] <- "chunked"

@@ -1,6 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    FSharp.Core (6.0.5)
+    FSharp.Core (6.0.7)
     Microsoft.Owin (4.2.2)
       Owin (>= 1.0) - restriction: >= net45
     Microsoft.Owin.FileSystems (4.2.2) - restriction: >= net45
@@ -20,8 +20,8 @@ GROUP Build
 NUGET
   remote: https://www.nuget.org/api/v2
     FAKE (5.16)
-    FSharp.Compiler.Service (41.0.3) - restriction: >= netstandard2.1
-      FSharp.Core (6.0.3) - restriction: >= netstandard2.0
+    FSharp.Compiler.Service (41.0.7) - restriction: >= netstandard2.1
+      FSharp.Core (6.0.7) - restriction: >= netstandard2.0
       Microsoft.Build.Framework (>= 17.0) - restriction: >= netstandard2.0
       Microsoft.Build.Tasks.Core (>= 17.0) - restriction: >= netstandard2.0
       Microsoft.Build.Utilities.Core (>= 17.0) - restriction: >= netstandard2.0
@@ -47,9 +47,9 @@ NUGET
       System.Threading.Tasks.Parallel (>= 4.3) - restriction: >= netstandard2.0
       System.Threading.Thread (>= 4.3) - restriction: >= netstandard2.0
       System.Threading.ThreadPool (>= 4.3) - restriction: >= netstandard2.0
-    FSharp.Core (6.0.3) - restriction: >= netstandard2.1
-    FSharp.Formatting (15.0)
-      FSharp.Compiler.Service (41.0.3) - restriction: >= netstandard2.1
+    FSharp.Core (6.0.7)
+    FSharp.Formatting (14.0.1)
+      FSharp.Compiler.Service (>= 40.0) - restriction: >= netstandard2.1
     Microsoft.Build.Framework (17.2) - restriction: >= netstandard2.1
       Microsoft.Win32.Registry (>= 4.3) - restriction: || (&& (< net472) (>= netstandard2.0)) (>= net6.0)
       System.Security.Permissions (>= 4.7) - restriction: || (&& (< net472) (>= netstandard2.0)) (>= net6.0)
@@ -562,7 +562,7 @@ NUGET
       System.Drawing.Common (>= 6.0) - restriction: >= netcoreapp3.1
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (e313c3b25a2c3d683d0ceed735a1a2b9b15a4fb4)
+    modules/Octokit/Octokit.fsx (30702bab4ca899c08ab087f3c7a40e93be4f6076)
       Octokit (>= 0.20)
 GROUP standard
 NUGET
@@ -598,7 +598,7 @@ NUGET
 GROUP Test
 NUGET
   remote: https://www.nuget.org/api/v2
-    FSharp.Core (6.0.5) - restriction: >= netstandard2.0
+    FSharp.Core (6.0.7) - restriction: >= netstandard2.0
     FsUnit.xUnit (5.0.1)
       FSharp.Core (>= 5.0.2) - restriction: >= netstandard2.0
       NETStandard.Library (>= 2.0.3) - restriction: >= netstandard2.0

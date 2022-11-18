@@ -37,6 +37,7 @@ type CompressionSettings = {
     AllowedExtensionAndMimeTypes: IEnumerable<string*string>;
     MinimumSizeToCompress: int64;
     DeflateDisabled: bool;
+    StreamingDisabled: bool;
     }
 
 module OwinCompression =
@@ -53,6 +54,7 @@ module OwinCompression =
         CacheExpireTime = None
         MinimumSizeToCompress = 1000L
         DeflateDisabled = false
+        StreamingDisabled = false
         AllowedExtensionAndMimeTypes = 
         [|
             ".js"   , "application/javascript";
@@ -173,7 +175,7 @@ module OwinCompression =
                     let! awaited = getFile()
                     let shouldskip, bytes = awaited
                     if(shouldskip) then
-                            return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(bytes), cancellationToken)
+                            return! context.Response.Body.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
                     else
                     
                     if not(context.Response.Headers.ContainsKey "Vary") then
@@ -190,7 +192,29 @@ module OwinCompression =
                     t1 |> ignore
                     zipped.Close()
                     let op = output.ToArray()
-                    return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(op), cancellationToken)
+                    
+                    let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
+
+                    let doStream = 
+                        if not(cancellationToken.IsCancellationRequested) then
+                            try
+                                if canStream && (int64 defaultBufferSize) < op.LongLength then
+                                    if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
+                                        || context.Response.Headers.["Transfer-Encoding"] <> StringValues("chunked") then
+                                        context.Response.Headers.["Transfer-Encoding"] <- "chunked"
+                                    true
+                                else
+                                    context.Response.ContentLength <- Nullable(op.LongLength)
+                                    false
+
+                            with | _ -> 
+                                false // Content length info is not so important...
+                        else false
+
+                    if doStream then
+                        return! zipped.CopyToAsync(context.Response.Body, defaultBufferSize, cancellationToken)
+                    else
+                        return! context.Response.Body.WriteAsync(op, 0, op.Length, cancellationToken)
                 } :> Task
 
             | ContextResponseBody(next) ->
@@ -252,7 +276,7 @@ module OwinCompression =
                             return ()
                         | false -> 
 
-                            let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
+                            let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal) && not settings.StreamingDisabled
 
                             if not(context.Response.Headers.ContainsKey "Vary") then
                                 context.Response.Headers.Add("Vary", StringValues("Accept-Encoding"))
@@ -278,7 +302,7 @@ module OwinCompression =
 
                             if not(cancellationToken.IsCancellationRequested) then
                                 try
-                                    if canStream then
+                                    if canStream && (int64 defaultBufferSize) < op.LongLength then
                                         if not(context.Response.Headers.ContainsKey("Transfer-Encoding")) 
                                             || context.Response.Headers.["Transfer-Encoding"] <> StringValues("chunked") then
                                             context.Response.Headers.["Transfer-Encoding"] <- StringValues("chunked")
@@ -318,7 +342,7 @@ module OwinCompression =
                 | File ->
                     task {
                         let! comp, r = getFile()
-                        if comp then return! context.Response.WriteAsync(System.Text.Encoding.Default.GetString(r), cancellationToken)
+                        if comp then return! context.Response.Body.WriteAsync(r, 0, r.Length, cancellationToken)
                         else return! Task.Delay 50 
                     } :> Task
                 | ContextResponseBody(next) ->

@@ -1,3 +1,8 @@
+### 1.0.30 - November 18 2022
+* StreamingDisabled setting for disabling HTTP1.1 streaming responses
+* Streaming added on static files
+* AspNET Core WebAPI .NET Standard fixes (and test project added)
+
 ### 1.0.29 - August 11 2022
 * Package dependency update
 
