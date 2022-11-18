@@ -3,12 +3,12 @@
 // it to define helpers that you do not want to show in the documentation.
 #I "../../bin"
 #I @"./../../packages/Owin/lib/net40"
-#I @"./../../packages/Microsoft.Owin/lib/net451" 
-#I @"./../../packages/Microsoft.Owin.Hosting/lib/net451"
-#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net451"
-#I @"./../../bin/Owin.Compression"
-#I @"./../../packages/Microsoft.Owin.StaticFiles/lib/net451"
-#I @"./../../packages/Microsoft.Owin.FileSystems/lib/net451"
+#r @"nuget: Microsoft.Owin" 
+#r @"nuget: Microsoft.Owin.Hosting"
+#r @"nuget: Microsoft.Owin.Host.HttpListener"
+#r @"nuget: Owin.Compression"
+#r @"nuget: Microsoft.Owin.StaticFiles"
+#r @"nuget: Microsoft.Owin.FileSystems"
 
 (**
 Owin.Compression
@@ -67,7 +67,7 @@ This example demonstrates using MapCompressionModule-function defined in this sa
 
 And now your files are smaller than with e.g. just Microsoft.Owin.StaticFiles -library server:
 
-![compressed](https://raw.githubusercontent.com/Thorium/Owin.Compression/master/screen.png)
+<img src="https://raw.githubusercontent.com/Thorium/Owin.Compression/master/screen.png" alt="compressed" width="1000"/>
 
 Even though the browser sees everything as plain text, the traffic is actually transfered as compressed format.
 You can monitor the traffic with e.g. Fiddler.
@@ -115,13 +115,14 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
 	}
 ```
 
-Example #4
+Example #3
 ----------
 
 Running on OWIN Self-Host (Microsoft.Owin.Hosting) with static files server (Microsoft.Owin.StaticFiles)
 and compressing all the responses (and files) on-the-fly. This example is in F-Sharp (and can be run with F#-interactive):
 
 *)
+
 
 #r "Owin.dll"
 #r "Microsoft.Owin.dll"
@@ -133,6 +134,8 @@ and compressing all the responses (and files) on-the-fly. This example is in F-S
 
 open Owin
 open System
+
+module Examples =
 
 type MyStartup() =
     member __.Configuration(app:Owin.IAppBuilder) =
@@ -147,15 +150,13 @@ server.Dispose()
 
 (**
 
-Example #5
+Example #4
 ----------
 
 Running on ASP.NET Core web API on .NET 6.0. You can use C# but this example is in F#
 just because shorter syntax. The full project is available at tests-folder:
 
 *)
-
-namespace Aspnet.Core.WebAPI
 
 open System
 open Microsoft.AspNetCore.Builder
@@ -182,7 +183,6 @@ module Program =
         app.MapControllers() |> ignore
         app.Run()
         0
-
 (**
 
 

@@ -13,6 +13,14 @@
     <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <WarningsAsErrors>3239;3511;$(WarningsAsErrors)</WarningsAsErrors>
+	<PackageTags>owin, compression, gzip, aspnetcore, webserver, deflate, etag, kestrel, speedup, request, compres</PackageTags>
+	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	<RepositoryType>git</RepositoryType>
+	<Authors>Thorium</Authors>
+	<FsDocsNavbarPosition>fixed-right</FsDocsNavbarPosition>
+	<FsDocsWarnOnMissingDocs>false</FsDocsWarnOnMissingDocs>
+	<FsDocsLogoLink>https://github.com/Thorium/Owin.Compression/raw/master/docs/files/img/logo.png</FsDocsLogoLink>
+	<FsDocsTheme>default</FsDocsTheme>
   </PropertyGroup>
   <PropertyGroup>
     <WarningLevel>4</WarningLevel>

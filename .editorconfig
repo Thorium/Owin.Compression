@@ -1,0 +1,34 @@
+# http://editorconfig.org
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.fs]
+max_line_length=300
+fsharp_space_before_parameter=false
+fsharp_space_before_lowercase_invocation=false
+fsharp_space_after_comma=false
+fsharp_space_after_semicolon=false
+fsharp_space_around_delimiter=false
+fsharp_max_if_then_else_short_width=300
+fsharp_max_infix_operator_expression=300
+fsharp_max_record_width=300
+fsharp_max_record_number_of_items=300
+fsharp_max_array_or_list_width=300
+fsharp_max_array_or_list_number_of_items=300
+fsharp_max_value_binding_width=300
+fsharp_max_function_binding_width=300
+fsharp_max_dot_get_expression_width=300
+fsharp_multiline_block_brackets_on_same_column=true
+fsharp_blank_lines_around_nested_multiline_expressions=false
+fsharp_experimental_stroustrup_style=true
+fsharp_keep_max_number_of_blank_lines=3

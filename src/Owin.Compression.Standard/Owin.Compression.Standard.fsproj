@@ -8,6 +8,16 @@
     <AssemblyName>Owin.Compression</AssemblyName>
     <Name>Owin.Compression</Name>
     <TargetFSharpCoreVersion>6.0.0.0</TargetFSharpCoreVersion>
+    <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
+	<PackageTags>owin, compression, gzip, aspnetcore, webserver, deflate, etag, kestrel, speedup, request, compres</PackageTags>
+	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	<RepositoryType>git</RepositoryType>
+	<Authors>Thorium</Authors>
+	<FsDocsNavbarPosition>fixed-right</FsDocsNavbarPosition>
+	<FsDocsWarnOnMissingDocs>false</FsDocsWarnOnMissingDocs>
+	<FsDocsLogoLink>https://github.com/Thorium/Owin.Compression/raw/master/docs/files/img/logo.png</FsDocsLogoLink>
+	<FsDocsTheme>default</FsDocsTheme>
+	
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="mscorlib" />
