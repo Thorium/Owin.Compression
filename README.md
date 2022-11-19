@@ -13,8 +13,8 @@ Here is a demo in action from Fiddler net traffic monitor:
 
 ![compressed](screen.png)
 
-Read the [Getting started tutorial](http://thorium.github.io/Owin.Compression/index.html#Getting-started) to learn more.
+Read the [Getting started tutorial](https://thorium.github.io/Owin.Compression/index.html#Getting-started) to learn more.
 
-Documentation: http://thorium.github.io/Owin.Compression
+Documentation: https://thorium.github.io/Owin.Compression
 
 
