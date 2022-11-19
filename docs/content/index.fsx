@@ -14,7 +14,8 @@
 Owin.Compression
 ======================
 
-Documentation
+Owin.Compression (Deflate / GZip) module ("middleware") for Microsoft OWIN pipeline. Can be used with .NET Full, .NET Core, .NET Standard, .NET6.0, and so on. Works with Selfhost and AspNetCore (e.g. with Kestrel, which is OWIN based server).
+It compresses the web request responses to make the transfer smaller, and it supports eTag caching.
 
 <div class="row">
   <div class="span1"></div>
@@ -154,7 +155,7 @@ Example #4
 ----------
 
 Running on ASP.NET Core web API on .NET 6.0. You can use C# but this example is in F#
-just because shorter syntax. The full project is available at tests-folder:
+just because shorter syntax. The full project is available at tests-folder of this project:
 
 *)
 
@@ -185,6 +186,10 @@ module Program =
         0
 (**
 
+https://github.com/Thorium/Owin.Compression/tree/master/tests/Aspnet.Core.WebAPI.Test
+
+Example #5
+----------
 
 More complete example can be found <a href="https://github.com/Thorium/WebsitePlayground">here</a>.
 
