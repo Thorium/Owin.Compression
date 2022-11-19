@@ -5,6 +5,7 @@ Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipel
 Can be used also with AspNetCore e.g. with .NET6.0 and Kestrel.
 
 With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to reduce amount of web traffic.
+Supports eTag caching: If client sent hashcode match, sends 302 instead of re-sending the same content.
 
 This project works on C# and F# and should work on Windows and Mono as well.
 
