@@ -85,7 +85,8 @@
         <hr />
         <div class="container" id="fsdocs-content">
             <h1><a name="Owin-Compression" class="anchor" href="#Owin-Compression">Owin.Compression</a></h1>
-<p>Documentation</p>
+<p>Owin.Compression (Deflate / GZip) module ("middleware") for Microsoft OWIN pipeline. Can be used with .NET Full, .NET Core, .NET Standard, .NET6.0, and so on. Works with Selfhost and AspNetCore (e.g. with Kestrel, which is OWIN based server).
+It compresses the web request responses to make the transfer smaller, and it supports eTag caching.</p>
 <div class="row">
   <div class="span1"></div>
   <div class="span6">
@@ -199,7 +200,7 @@ and compressing all the responses (and files) on-the-fly. This example is in F-S
 </code></pre>
 <h2><a name="Example-4" class="anchor" href="#Example-4">Example #4</a></h2>
 <p>Running on ASP.NET Core web API on .NET 6.0. You can use C# but this example is in F#
-just because shorter syntax. The full project is available at tests-folder:</p>
+just because shorter syntax. The full project is available at tests-folder of this project:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">open</span> <span onmouseout="hideTip(event, 'fs2', 26)" onmouseover="showTip(event, 'fs2', 26)" class="id">System</span>
 <span class="k">open</span> <span onmouseout="hideTip(event, 'fs10', 27)" onmouseover="showTip(event, 'fs10', 27)" class="id">Microsoft</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs19', 28)" onmouseover="showTip(event, 'fs19', 28)" class="id">AspNetCore</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs20', 29)" onmouseover="showTip(event, 'fs20', 29)" class="id">Builder</span>
 <span class="k">open</span> <span onmouseout="hideTip(event, 'fs10', 30)" onmouseover="showTip(event, 'fs10', 30)" class="id">Microsoft</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs21', 31)" onmouseover="showTip(event, 'fs21', 31)" class="id">Extensions</span><span class="pn">.</span><span class="id">DependencyInjection</span>
@@ -226,6 +227,8 @@ just because shorter syntax. The full project is available at tests-folder:</p>
         <span onmouseout="hideTip(event, 'fs26', 57)" onmouseover="showTip(event, 'fs26', 57)" class="fn">app</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs35', 58)" onmouseover="showTip(event, 'fs35', 58)" class="id">Run</span><span class="pn">(</span><span class="pn">)</span>
         <span class="n">0</span>
 </code></pre>
+<p><a href="https://github.com/Thorium/Owin.Compression/tree/master/tests/Aspnet.Core.WebAPI.Test">https://github.com/Thorium/Owin.Compression/tree/master/tests/Aspnet.Core.WebAPI.Test</a></p>
+<h2><a name="Example-5" class="anchor" href="#Example-5">Example #5</a></h2>
 <p>More complete example can be found <a href="https://github.com/Thorium/WebsitePlayground">here</a>.</p>
 <h2><a name="Samples-amp-documentation" class="anchor" href="#Samples-amp-documentation">Samples &amp; documentation</a></h2>
 <p>The library comes with comprehensible documentation.
