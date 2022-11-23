@@ -27,7 +27,6 @@ module Program =
 
         let app = builder.Build()
 
-        let weba = app :> IApplicationBuilder
         let compressionSetting = 
             {OwinCompression.DefaultCompressionSettings with 
                 CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
@@ -36,9 +35,10 @@ module Program =
                 MinimumSizeToCompress = 0
             }
 
-        weba.UseCompressionModule(compressionSetting) |> ignore 
-        app.MapControllers()
+        (app :> IApplicationBuilder).UseCompressionModule(compressionSetting) |> ignore
 
+        app.MapControllers()
+        
         app.Run()
 
         exitCode

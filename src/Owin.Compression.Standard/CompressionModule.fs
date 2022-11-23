@@ -246,7 +246,7 @@ module OwinCompression =
             | ContextResponseBody(next) ->
 
 
-                let compressableExtension() = 
+                let compressableExtension() =
                     match context.Request.Path.ToString() with
                     | null -> true
                     | x when x.Contains(".") -> 
@@ -262,15 +262,19 @@ module OwinCompression =
                 else
 
                 let compressableExtension = compressableExtension()
-                let isCompressable = compressableExtension && not(context.Request.Path.ToString().Contains("/signalr/"))
 
-                let continuation1 bufferData =
+                let checkCompressability buffer =
+                    let captureResponse() =
+                        match buffer with
+                        | Some bufferStream ->
+                            context.Response.Body <- bufferStream
+                        | None -> ()
                     if compressableExtension then // non-stream, but Invoke can change "/" -> "index.html"
-                        context.Response.Body <- bufferData
+                        captureResponse()
                         true
-                    elif String.IsNullOrEmpty context.Response.ContentType then 
+                    elif String.IsNullOrEmpty context.Response.ContentType then
                         if settings.AllowUnknonwnFiletypes then
-                            context.Response.Body <- bufferData
+                            captureResponse()
                             true
                         else false
                     else 
@@ -282,10 +286,14 @@ module OwinCompression =
                         if settings.AllowedExtensionAndMimeTypes
                                 |> Seq.map snd |> Seq.append ["text/html"]
                                 |> Seq.contains(contentType) then 
-                            context.Response.Body <- bufferData
+                            captureResponse()
                             true
                         else
                             false
+
+                let isCompressable =
+                    (checkCompressability None) && not(context.Request.Path.ToString().Contains("/signalr/"))
+                    && context.Response.Body.CanWrite
 
                 let continuation2 (copy1:unit->Task) (copy2:Stream->Task) (copy3:MemoryStream->Task) = 
                     task {
@@ -355,13 +363,23 @@ module OwinCompression =
                         context.Response.Body <- buffer // stream
                     else
                         ()
-                    let usecompress = isCompressable || continuation1 buffer
+
                     do! next.Invoke()
+
+                    let usecompress = isCompressable || checkCompressability (Some buffer)
                     
                     if usecompress && checkNoValidETag(context.Response.Body) then
-                        let copy1() = context.Response.Body.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
+                        let copy1() =
+                            task {
+                                do! context.Response.Body.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
+                                context.Response.Body <- streamWebOutput
+                            } :> Task
                         let copy2 (zipped:Stream) = context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
-                        let copy3 (zippedData:MemoryStream) = zippedData.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
+                        let copy3 (zippedData:MemoryStream) =
+                            task {
+                                do! zippedData.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
+                                context.Response.Body <- streamWebOutput
+                            } :> Task
                         return! continuation2 copy1 copy2 copy3
                     else 
                         return ()
