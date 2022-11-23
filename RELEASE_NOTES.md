@@ -1,3 +1,7 @@
+### 1.0.31 - November 23 2022
+* Improvements on error handling
+* Improvements on picking which files to compress
+
 ### 1.0.30 - November 18 2022
 * StreamingDisabled setting for disabling HTTP1.1 streaming responses
 * Streaming added on static files

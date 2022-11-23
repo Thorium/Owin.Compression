@@ -58,6 +58,14 @@ module OwinCompression =
             ".map"  , "application/octet-stream";
             ".ttf"  , "application/x-font-ttf";
             ".otf"  , "application/x-font-opentype";
+            ".ico"  , "image/x-icon";
+            ".map"  , "application/json";
+            ".xml"  , "application/xml";
+            ".xsl"  , "text/xml";
+            ".xhtml", "application/xhtml+xml";
+            ".rss"  , "application/rss+xml";
+            ".eot"  , "font/eot";
+            ".aspx" , "text/html";
         |]
     }
 
@@ -77,18 +85,20 @@ module OwinCompression =
         let cancellationToken = cancellationSrc.Token
 
         let getMd5Hash (item:Stream) =
-            let hasPos = 
-                if item.CanSeek && item.Position > 0L then
-                    let tmp = item.Position
-                    item.Position <- 0L
-                    Some tmp
-                else None
-            use md5 = System.Security.Cryptography.MD5.Create()
-            let res = BitConverter.ToString(md5.ComputeHash(item)).Replace("-","")
-            match hasPos with
-            | Some x when item.CanSeek -> item.Position <- x
-            | _ -> ()
-            res
+            if item.CanRead then
+                let hasPos = 
+                    if item.CanSeek && item.Position > 0L then
+                        let tmp = item.Position
+                        item.Position <- 0L
+                        Some tmp
+                    else None
+                use md5 = System.Security.Cryptography.MD5.Create()
+                let res = BitConverter.ToString(md5.ComputeHash(item)).Replace("-","")
+                match hasPos with
+                | Some x when item.CanSeek -> item.Position <- x
+                | _ -> ()
+                Some res
+            else None
 
         let create304Response() =
             if cancellationSrc<>null then cancellationSrc.Cancel()
@@ -105,16 +115,22 @@ module OwinCompression =
                     create304Response()
                 else
                 
-                let etag = getMd5Hash(itemToCheck)
-                if context.Request.Headers.["If-None-Match"] = etag then
-                    create304Response()
-                else
-                    if String.IsNullOrEmpty context.Response.ETag then
-                        context.Response.ETag <- etag
-                    true
+                match getMd5Hash(itemToCheck) with
+                | Some etag ->
+                    if context.Request.Headers.["If-None-Match"] = etag then
+                        create304Response()
+                    else
+                        if String.IsNullOrEmpty context.Response.ETag &&
+                                not context.Response.Headers.IsReadOnly then
+                            context.Response.ETag <- etag
+                        true
+                | None -> true
             else
                 if String.IsNullOrEmpty context.Response.ETag then
-                    context.Response.ETag <- getMd5Hash(itemToCheck)
+                    match getMd5Hash(itemToCheck) with
+                    | Some etag when not context.Response.Headers.IsReadOnly ->
+                        context.Response.ETag <- etag
+                    | _ -> ()
                 true
 
         let getFile() =
@@ -125,28 +141,35 @@ module OwinCompression =
                     if File.Exists p then failwith "Invalid resource"
                     Path.Combine ([| settings.ServerPath; p2|])
 
-            let extension = unpacked.Substring(unpacked.LastIndexOf ".")
+            let extension = if not (unpacked.Contains ".") then "" else unpacked.Substring(unpacked.LastIndexOf ".")
             let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
 
             match typemap.ContainsKey(extension) with
             | true -> context.Response.ContentType <- typemap.[extension]
             | false when settings.AllowUnknonwnFiletypes -> ()
-            | _ -> failwith "Invalid resource type"
+            | _ ->
+                context.Response.StatusCode <- 415
+                raise (ArgumentException("Invalid resource type", context.Request.Path.ToString()))
 
             task {
-                use strm = File.OpenText unpacked
-                let! txt = strm.ReadToEndAsync()
-                let bytes = txt |> System.Text.Encoding.UTF8.GetBytes
-                match FileInfo(unpacked).Length < settings.MinimumSizeToCompress with
-                | true -> 
-                    return false, bytes
-                | false -> 
-                    let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
-                    context.Response.Headers.Add("Last-Modified", [|lastmodified|])
-                    if checkNoValidETag(strm.BaseStream) then
-                        return true, bytes
-                    else
-                        return false, null
+                try
+                    use strm = File.OpenText unpacked
+                    let! txt = strm.ReadToEndAsync()
+                    let bytes = txt |> System.Text.Encoding.UTF8.GetBytes
+                    match FileInfo(unpacked).Length < settings.MinimumSizeToCompress with
+                    | true -> 
+                        return false, bytes
+                    | false -> 
+                        let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
+                        context.Response.Headers.Add("Last-Modified", [|lastmodified|])
+                        if checkNoValidETag(strm.BaseStream) then
+                            return true, bytes
+                        else
+                            return false, null
+                with
+                | :? FileNotFoundException ->
+                    context.Response.StatusCode <- 404
+                    return true, null
             }
 
         let encodings = 
@@ -166,7 +189,10 @@ module OwinCompression =
                     let! awaited = getFile()
                     let shouldskip, bytes = awaited
                     if(shouldskip) then
+                        if bytes <> null then
                             return! context.Response.WriteAsync(bytes, cancellationToken)
+                        else
+                            return ()
                     else
                     
                     if not(context.Response.Headers.ContainsKey "Vary") then
@@ -211,7 +237,7 @@ module OwinCompression =
             | ContextResponseBody(next) ->
 
 
-                let compressableExtension() = 
+                let compressableExtension() =
                     match context.Request.Path.ToString() with
                     | null -> true
                     | x when x.Contains(".") -> 
@@ -227,14 +253,17 @@ module OwinCompression =
                 else
 
                 let compressableExtension = compressableExtension()
-                let isCompressable = compressableExtension || not(context.Request.Path.ToString().Contains("/signalr/"))
+                let isCompressable = compressableExtension && not(context.Request.Path.ToString().Contains("/signalr/"))
 
                 let continuation1 bufferData =
                     if compressableExtension then // non-stream, but Invoke can change "/" -> "index.html"
                         context.Response.Body <- bufferData
                         true
-                    elif String.IsNullOrEmpty context.Response.ContentType then 
-                        false
+                    elif String.IsNullOrEmpty context.Response.ContentType then
+                        if settings.AllowUnknonwnFiletypes then
+                            context.Response.Body <- bufferData
+                            true
+                        else false
                     else 
                         let contentType = 
                             // We are not interested of charset, etc:
@@ -262,12 +291,11 @@ module OwinCompression =
                         | true -> 
                             if context.Response.Body.CanSeek then
                                 context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
-                        
                             do! copy1()
                             return ()
                         | false -> 
 
-                            let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal)
+                            let canStream = String.Equals(context.Request.Protocol, "HTTP/1.1", StringComparison.Ordinal) && not settings.StreamingDisabled
 
                             if not(context.Response.Headers.ContainsKey "Vary") then
                                 context.Response.Headers.Add("Vary", [|"Accept-Encoding"|])
@@ -313,7 +341,7 @@ module OwinCompression =
 
                 task {
 
-                    use stream = context.Response.Body
+                    use streamWebOutput = context.Response.Body
                     use buffer = new MemoryStream()
                     
                     if isCompressable then
@@ -321,16 +349,14 @@ module OwinCompression =
                     else
                         ()
 
-                    do! next.Invoke()
-
                     let usecompress = isCompressable || continuation1 buffer
-
+                    do! next.Invoke()
 
                     if usecompress && checkNoValidETag(context.Response.Body) then
 
-                        let copy1() = context.Response.Body.CopyToAsync(stream, defaultBufferSize, cancellationToken)
+                        let copy1() = context.Response.Body.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
                         let copy2 (zipped:Stream) = context.Response.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
-                        let copy3 (tmpOutput:MemoryStream) = tmpOutput.CopyToAsync(stream, defaultBufferSize, cancellationToken)
+                        let copy3 (zippedData:MemoryStream) = zippedData.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
 
                         return! continuation2 copy1 copy2 copy3
 

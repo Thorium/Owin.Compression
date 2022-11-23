@@ -33,9 +33,10 @@ module Program =
                 CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
                 AllowUnknonwnFiletypes = true
                 StreamingDisabled = true
+                MinimumSizeToCompress = 0
             }
-        weba.UseCompressionModule(compressionSetting) |> ignore 
 
+        weba.UseCompressionModule(compressionSetting) |> ignore 
         app.MapControllers()
 
         app.Run()
