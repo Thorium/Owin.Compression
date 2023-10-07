@@ -15,7 +15,7 @@ module WebStartFileServer =
         member __.Configuration(app:Owin.IAppBuilder) =
             let compressionSetting = 
                 {OwinCompression.DefaultCompressionSettings with 
-                    CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
+                    CacheExpireTime = ValueSome (DateTimeOffset.Now.AddDays 7.)
                     }
             app.MapCompressionModule("/zipped", compressionSetting) |> ignore 
             ()
@@ -28,7 +28,7 @@ module WebStart =
         member __.Configuration(app:Owin.IAppBuilder) =
             let compressionSetting = 
                 {OwinCompression.DefaultCompressionSettings with 
-                    CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
+                    CacheExpireTime = ValueSome (DateTimeOffset.Now.AddDays 7.)
                     }
 
             app.UseCompressionModule(compressionSetting) |> ignore

@@ -24,7 +24,7 @@ type CompressionSettings = {
     ServerPath: string;
     AllowUnknonwnFiletypes: bool;
     AllowRootDirectories: bool;
-    CacheExpireTime: DateTimeOffset option;
+    CacheExpireTime: DateTimeOffset voption;
     AllowedExtensionAndMimeTypes: IEnumerable<string*string>;
     MinimumSizeToCompress: int64;
     DeflateDisabled: bool;
@@ -42,7 +42,7 @@ module OwinCompression =
         ServerPath = basePath;
         AllowUnknonwnFiletypes = false;
         AllowRootDirectories = false;
-        CacheExpireTime = None
+        CacheExpireTime = ValueNone
         MinimumSizeToCompress = 1000L
         DeflateDisabled = false
         StreamingDisabled = false
@@ -70,38 +70,37 @@ module OwinCompression =
     }
 
     /// Default settings with custom path. No cache time.
-    let DefaultCompressionSettingsWithPath(path) = 
+    let DefaultCompressionSettingsWithPath path = 
         {DefaultCompressionSettings with 
-            ServerPath = path; CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.) }
+            ServerPath = path; CacheExpireTime = ValueSome (DateTimeOffset.Now.AddDays 7.) }
 
     /// Default settings with custom path and cache-time. C#-helper method.
     let DefaultCompressionSettingsWithPathAndCache(path,cachetime) = 
-        {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = Some (cachetime) }
+        {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = ValueSome (cachetime) }
 
     let private defaultBufferSize = 81920
+    let internal getMd5Hash (item:Stream) =
+        if item.CanRead then
+            let hasPos = 
+                if item.CanSeek && item.Position > 0L then
+                    let tmp = item.Position
+                    item.Position <- 0L
+                    ValueSome tmp
+                else ValueNone
+            use md5 = System.Security.Cryptography.MD5.Create()
+            let res = BitConverter.ToString(md5.ComputeHash item).Replace("-","")
+            match hasPos with
+            | ValueSome x when item.CanSeek -> item.Position <- x
+            | _ -> ()
+            ValueSome res
+        else ValueNone
 
     let internal compress (context:IOwinContext) (settings:CompressionSettings) (mode:ResponseMode) =
         let cancellationSrc = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(context.Request.CallCancelled)
         let cancellationToken = cancellationSrc.Token
 
-        let getMd5Hash (item:Stream) =
-            if item.CanRead then
-                let hasPos = 
-                    if item.CanSeek && item.Position > 0L then
-                        let tmp = item.Position
-                        item.Position <- 0L
-                        Some tmp
-                    else None
-                use md5 = System.Security.Cryptography.MD5.Create()
-                let res = BitConverter.ToString(md5.ComputeHash(item)).Replace("-","")
-                match hasPos with
-                | Some x when item.CanSeek -> item.Position <- x
-                | _ -> ()
-                Some res
-            else None
-
         let create304Response() =
-            if cancellationSrc<>null then cancellationSrc.Cancel()
+            if not (isNull cancellationSrc) then cancellationSrc.Cancel()
             context.Response.StatusCode <- 304
             context.Response.Body.Close()
             context.Response.Body <- Stream.Null
@@ -109,14 +108,14 @@ module OwinCompression =
             false
 
         let checkNoValidETag (itemToCheck:Stream) =
-            if context.Request.Headers.ContainsKey("If-None-Match") && context.Request.Headers.["If-None-Match"] <> null &&
+            if context.Request.Headers.ContainsKey("If-None-Match") && (not(isNull context.Request.Headers.["If-None-Match"])) &&
                (not(context.Request.Headers.ContainsKey("Pragma")) || context.Request.Headers.["Pragma"] <> "no-cache") then
                 if context.Request.Headers.["If-None-Match"] = context.Response.ETag then
                     create304Response()
                 else
                 
-                match getMd5Hash(itemToCheck) with
-                | Some etag ->
+                match getMd5Hash itemToCheck with
+                | ValueSome etag ->
                     if context.Request.Headers.["If-None-Match"] = etag then
                         create304Response()
                     else
@@ -124,11 +123,11 @@ module OwinCompression =
                                 not context.Response.Headers.IsReadOnly then
                             context.Response.ETag <- etag
                         true
-                | None -> true
+                | ValueNone -> true
             else
                 if String.IsNullOrEmpty context.Response.ETag then
                     match getMd5Hash(itemToCheck) with
-                    | Some etag when not context.Response.Headers.IsReadOnly ->
+                    | ValueSome etag when not context.Response.Headers.IsReadOnly ->
                         context.Response.ETag <- etag
                     | _ -> ()
                 true
@@ -137,14 +136,14 @@ module OwinCompression =
             let unpacked :string = 
                     let p = context.Request.Path.ToString()
                     let p2 = match p.StartsWith("/") with true -> p.Substring(1) | false -> p
-                    if not(settings.AllowRootDirectories) && p.Contains("..") then failwith "Invalid path"
+                    if not(settings.AllowRootDirectories) && p.Contains ".." then failwith "Invalid path"
                     if File.Exists p then failwith "Invalid resource"
                     Path.Combine ([| settings.ServerPath; p2|])
 
             let extension = if not (unpacked.Contains ".") then "" else unpacked.Substring(unpacked.LastIndexOf ".")
             let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
 
-            match typemap.ContainsKey(extension) with
+            match typemap.ContainsKey extension with
             | true -> context.Response.ContentType <- typemap.[extension]
             | false when settings.AllowUnknonwnFiletypes -> ()
             | _ ->
@@ -162,7 +161,7 @@ module OwinCompression =
                     | false -> 
                         let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
                         context.Response.Headers.Add("Last-Modified", [|lastmodified|])
-                        if checkNoValidETag(strm.BaseStream) then
+                        if checkNoValidETag strm.BaseStream then
                             return true, bytes
                         else
                             return false, null
@@ -178,8 +177,8 @@ module OwinCompression =
         let encodeOutput (enc:SupportedEncodings) = 
 
             match settings.CacheExpireTime with
-            | Some d -> context.Response.Expires <- Nullable(d)
-            | None -> ()
+            | ValueSome d -> context.Response.Expires <- Nullable(d)
+            | ValueNone -> ()
 
             match mode with
             | File ->
@@ -188,11 +187,11 @@ module OwinCompression =
                     use output = new MemoryStream()
                     let! awaited = getFile()
                     let shouldskip, bytes = awaited
-                    if(shouldskip) then
-                        if bytes <> null then
-                            return! context.Response.WriteAsync(bytes, cancellationToken)
-                        else
+                    if shouldskip then
+                        if isNull bytes then
                             return ()
+                        else
+                            return! context.Response.WriteAsync(bytes, cancellationToken)
                     else
                     
                     if not(context.Response.Headers.ContainsKey "Vary") then
@@ -221,7 +220,7 @@ module OwinCompression =
                                         context.Response.Headers.["Transfer-Encoding"] <- "chunked"
                                     true
                                 else
-                                    context.Response.ContentLength <- Nullable(op.LongLength)
+                                    context.Response.ContentLength <- Nullable op.LongLength
                                     false
 
                             with | _ -> 
@@ -341,7 +340,7 @@ module OwinCompression =
                             if tmpOutput.CanSeek then
                                 tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                            do! copy3(tmpOutput)
+                            do! copy3 tmpOutput
                             return ()
 
                         }
@@ -380,7 +379,7 @@ module OwinCompression =
                 } :> Task
 
         let encodeTask() =
-            let WriteAsyncContext() =
+            let writeAsyncContext() =
                 match mode with
                 | File ->
                     task {
@@ -390,10 +389,10 @@ module OwinCompression =
                     } :> Task
                 | ContextResponseBody(next) ->
                     next.Invoke()
-            if String.IsNullOrEmpty(encodings) then WriteAsyncContext()
+            if String.IsNullOrEmpty encodings then writeAsyncContext()
             elif encodings.Contains "deflate" && not(settings.DeflateDisabled) then encodeOutput Deflate
             elif encodings.Contains "gzip" then encodeOutput GZip
-            else WriteAsyncContext()
+            else writeAsyncContext()
 
         encodeTask
 
@@ -405,7 +404,7 @@ type CompressionExtensions =
     [<Extension>]
     static member UseCompressionModule(app:IAppBuilder, settings:CompressionSettings) =
         app.Use(fun context next ->
-            (compress context settings (ResponseMode.ContextResponseBody(next)) )()
+            (compress context settings (ResponseMode.ContextResponseBody next) )()
         )
 
     [<Extension>]
