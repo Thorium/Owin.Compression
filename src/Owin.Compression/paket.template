@@ -30,7 +30,13 @@ dependencies
     Microsoft.Owin ~> LOCKEDVERSION
   framework: netstandard20
     FSharp.Core >= LOCKEDVERSION
-	NETStandard.Library ~> LOCKEDVERSION
+    NETStandard.Library ~> LOCKEDVERSION
+    Microsoft.AspNetCore.Http.Abstractions ~> LOCKEDVERSION
+    Microsoft.AspNetCore.Http.Features ~> LOCKEDVERSION
+    Microsoft.Extensions.Primitives ~> LOCKEDVERSION
+  framework: netstandard21
+    FSharp.Core >= LOCKEDVERSION
+    NETStandard.Library ~> LOCKEDVERSION
     Microsoft.AspNetCore.Http.Abstractions ~> LOCKEDVERSION
     Microsoft.AspNetCore.Http.Features ~> LOCKEDVERSION
     Microsoft.Extensions.Primitives ~> LOCKEDVERSION
