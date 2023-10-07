@@ -1,3 +1,9 @@
+### 1.0.34 - October 7 2023
+* Minor performance improvements
+
+### 1.0.33 - March 7 2023
+* Dependency update: Microsoft.Extensions.Primitives
+
 ### 1.0.32 - November 23 2022
 * Improvements on error handling
 * Improvements on picking which files to compress

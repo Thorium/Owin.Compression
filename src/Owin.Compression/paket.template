@@ -26,10 +26,10 @@ description
 dependencies
   framework: net452
     Owin >= 1.0.0
-    FSharp.Core ~> LOCKEDVERSION
+    FSharp.Core >= LOCKEDVERSION
     Microsoft.Owin ~> LOCKEDVERSION
   framework: netstandard20
-    FSharp.Core ~> LOCKEDVERSION
+    FSharp.Core >= LOCKEDVERSION
 	NETStandard.Library ~> LOCKEDVERSION
     Microsoft.AspNetCore.Http.Abstractions ~> LOCKEDVERSION
     Microsoft.AspNetCore.Http.Features ~> LOCKEDVERSION
