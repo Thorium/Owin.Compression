@@ -427,6 +427,19 @@ type CompressionExtensions =
             (compress context settings ResponseMode.File)() 
         ))
 
+    [<Extension>]
+    static member UseCompressionModuleLogTime(app:IApplicationBuilder, settings:CompressionSettings) =
+        app.Use(fun context next ->
+            task {
+                let sw = System.Diagnostics.Stopwatch.StartNew()
+                let! r = (Internals.compress context settings (ResponseMode.ContextResponseBody next) )()
+                sw.Stop()
+                let measure = "Took " + sw.Elapsed.TotalMilliseconds.ToString()
+                System.Diagnostics.Debug.WriteLine measure
+                return r
+            } :> Task
+        )
+
     /// You can set a path that is url that will be captured.
     /// The subsequent url-path will be mapped to server path.
     /// Uses OwinCompression.DefaultCompressionSettings

@@ -7,7 +7,7 @@
     <OutputPath>..\..\bin</OutputPath>
     <AssemblyName>Owin.Compression</AssemblyName>
     <Name>Owin.Compression</Name>
-    <TargetFSharpCoreVersion>6.0.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>7.0.0.0</TargetFSharpCoreVersion>
     <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
 	<PackageTags>owin, compression, gzip, aspnetcore, webserver, deflate, etag, kestrel, speedup, request, compress, middleware, pipeline</PackageTags>
 	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

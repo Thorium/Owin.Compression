@@ -1,4 +1,4 @@
-﻿namespace Aspnet.Core.WebAPI.Test.Controllers
+namespace Aspnet.Core.WebAPI.Test.Controllers
 
 open System
 open System.Collections.Generic
@@ -31,7 +31,7 @@ type WeatherForecastController (logger : ILogger<WeatherForecastController>) =
     member _.Get() =
         let rng = System.Random()
         [|
-            for index in 0..100 ->
+            for index in 0..1000 ->
                 { Date = DateTime.Now.AddDays(float index)
                   TemperatureC = rng.Next(-20,55)
                   Summary = summaries.[rng.Next(summaries.Length)] }
