@@ -59,16 +59,6 @@
   Documentation
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="/Owin.Compression/license.html">
-    license
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="/Owin.Compression/release-notes.html">
-    release-notes
-  </a>
-</li>             
-<li class="nav-item">
   <a class="nav-link" href="/Owin.Compression/tutorial.html">
     Using this library (C-Sharp)
 
@@ -298,7 +288,7 @@ from Index</div>
 <div class="fsdocs-tip" id="fs20">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The representation of &quot;Value of type &#39;T&quot;&lt;/summary&gt;<br />&lt;param name=&quot;Value&quot;&gt;The input value.&lt;/param&gt;<br />&lt;returns&gt;An option representing the value.&lt;/returns&gt;</em></div>
 <div class="fsdocs-tip" id="fs21">Multiple items<br />[&lt;Struct&gt;]
 type DateTimeOffset =
-  new: dateTime: DateTime -&gt; unit + 7 overloads
+  new: dateTime: DateTime -&gt; unit + 8 overloads
   member Add: timeSpan: TimeSpan -&gt; DateTimeOffset
   member AddDays: days: float -&gt; DateTimeOffset
   member AddHours: hours: float -&gt; DateTimeOffset
@@ -308,7 +298,7 @@ type DateTimeOffset =
   member AddMonths: months: int -&gt; DateTimeOffset
   member AddSeconds: seconds: float -&gt; DateTimeOffset
   member AddTicks: ticks: int64 -&gt; DateTimeOffset
-  ...<br /><em>&lt;summary&gt;Represents a point in time, typically expressed as a date and time of day, relative to Coordinated Universal Time (UTC).&lt;/summary&gt;</em><br /><br />--------------------<br />DateTimeOffset ()<br />DateTimeOffset(dateTime: DateTime) : DateTimeOffset<br />DateTimeOffset(dateTime: DateTime, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(ticks: int64, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, calendar: Globalization.Calendar, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, microsecond: int, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, microsecond: int, calendar: Globalization.Calendar, offset: TimeSpan) : DateTimeOffset</div>
+  ...<br /><em>&lt;summary&gt;Represents a point in time, typically expressed as a date and time of day, relative to Coordinated Universal Time (UTC).&lt;/summary&gt;</em><br /><br />--------------------<br />DateTimeOffset ()<br />DateTimeOffset(dateTime: DateTime) : DateTimeOffset<br />DateTimeOffset(dateTime: DateTime, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(ticks: int64, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(date: DateOnly, time: TimeOnly, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, calendar: Globalization.Calendar, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, microsecond: int, offset: TimeSpan) : DateTimeOffset<br />DateTimeOffset(year: int, month: int, day: int, hour: int, minute: int, second: int, millisecond: int, microsecond: int, calendar: Globalization.Calendar, offset: TimeSpan) : DateTimeOffset</div>
 <div class="fsdocs-tip" id="fs22">property DateTimeOffset.Now: DateTimeOffset with get<br /><em>&lt;summary&gt;Gets a &lt;see cref=&quot;T:System.DateTimeOffset&quot; /&gt; object that is set to the current date and time on the current computer, with the offset set to the local time&#39;s offset from Coordinated Universal Time (UTC).&lt;/summary&gt;<br />&lt;returns&gt;A &lt;see cref=&quot;T:System.DateTimeOffset&quot; /&gt; object whose date and time is the current local time and whose offset is the local time zone&#39;s offset from Coordinated Universal Time (UTC).&lt;/returns&gt;</em></div>
 <div class="fsdocs-tip" id="fs23">DateTimeOffset.AddDays(days: float) : DateTimeOffset</div>
 
