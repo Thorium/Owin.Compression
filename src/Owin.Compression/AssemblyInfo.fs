@@ -5,13 +5,13 @@ open System.Reflection
 [<assembly: AssemblyTitleAttribute("Owin.Compression")>]
 [<assembly: AssemblyProductAttribute("Owin.Compression")>]
 [<assembly: AssemblyDescriptionAttribute("Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipeline.")>]
-[<assembly: AssemblyVersionAttribute("1.0.34")>]
-[<assembly: AssemblyFileVersionAttribute("1.0.34")>]
+[<assembly: AssemblyVersionAttribute("1.0.35")>]
+[<assembly: AssemblyFileVersionAttribute("1.0.35")>]
 do ()
 
 module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyTitle = "Owin.Compression"
     let [<Literal>] AssemblyProduct = "Owin.Compression"
     let [<Literal>] AssemblyDescription = "Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipeline."
-    let [<Literal>] AssemblyVersion = "1.0.34"
-    let [<Literal>] AssemblyFileVersion = "1.0.34"
+    let [<Literal>] AssemblyVersion = "1.0.35"
+    let [<Literal>] AssemblyFileVersion = "1.0.35"

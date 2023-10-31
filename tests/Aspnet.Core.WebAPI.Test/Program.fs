@@ -29,7 +29,7 @@ module Program =
 
         let compressionSetting = 
             {OwinCompression.DefaultCompressionSettings with 
-                CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
+                CacheExpireTime = ValueSome (DateTimeOffset.Now.AddDays 7.)
                 AllowUnknonwnFiletypes = true
                 StreamingDisabled = true
                 MinimumSizeToCompress = 0

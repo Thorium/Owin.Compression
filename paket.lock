@@ -1,6 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    FSharp.Core (6.0.7)
+    FSharp.Core (7.0.400)
     Microsoft.Owin (4.2.2)
       Owin (>= 1.0) - restriction: >= net45
     Microsoft.Owin.FileSystems (4.2.2) - restriction: >= net45
@@ -47,7 +47,7 @@ NUGET
       System.Threading.Tasks.Parallel (>= 4.3) - restriction: >= netstandard2.0
       System.Threading.Thread (>= 4.3) - restriction: >= netstandard2.0
       System.Threading.ThreadPool (>= 4.3) - restriction: >= netstandard2.0
-    FSharp.Core (6.0.7)
+    FSharp.Core (7.0.400)
     FSharp.Formatting (14.0.1)
       FSharp.Compiler.Service (>= 40.0) - restriction: >= netstandard2.1
     Microsoft.Build.Framework (17.2) - restriction: >= netstandard2.1
@@ -598,7 +598,7 @@ NUGET
 GROUP Test
 NUGET
   remote: https://www.nuget.org/api/v2
-    FSharp.Core (6.0.7) - restriction: >= netstandard2.0
+    FSharp.Core (7.0.400) - restriction: >= netstandard2.0
     FsUnit.xUnit (5.0.1)
       FSharp.Core (>= 5.0.2) - restriction: >= netstandard2.0
       NETStandard.Library (>= 2.0.3) - restriction: >= netstandard2.0
