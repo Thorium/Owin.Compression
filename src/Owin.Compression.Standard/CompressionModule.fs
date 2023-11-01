@@ -39,6 +39,7 @@ type CompressionSettings = {
     MinimumSizeToCompress: int64;
     DeflateDisabled: bool;
     StreamingDisabled: bool;
+    ExcludedPaths: IEnumerable<string>;
     }
 
 module OwinCompression =
@@ -56,6 +57,7 @@ module OwinCompression =
         MinimumSizeToCompress = 1000L
         DeflateDisabled = false
         StreamingDisabled = false
+        ExcludedPaths = [| "/signalr/" |]
         AllowedExtensionAndMimeTypes = 
         [|
             ".js"   , "application/javascript";
@@ -152,7 +154,7 @@ module OwinCompression =
             else
                 if etagVal = StringValues.Empty then
                     match getHash(itemToCheck) with
-                    | ValueSome etag when not contextResponse.Headers.IsReadOnly ->
+                    | ValueSome etag when not contextResponse.Headers.IsReadOnly && itemToCheck.Length > 0L ->
                         contextResponse.Headers.["ETag"] <- StringValues etag
                     | _ -> ()
                 true
@@ -295,15 +297,15 @@ module OwinCompression =
                         false
 
             let isCompressable =
-                (checkCompressability None) && not(contextRequest.Path.ToString().Contains("/signalr/"))
+                (checkCompressability None) && not(settings.ExcludedPaths |> Seq.exists(fun p -> contextRequest.Path.ToString().Contains p))
                 && contextResponse.Body.CanWrite
 
-            let continuation2 (copy1:unit->Task) (copy2:Stream->Task) (copy3:MemoryStream->Task) = 
+            let continuation2 (pipedLengthNotEnough:bool) (copyBufferToBody:unit->Task) (copyBodyToCompressor:Stream->Task) (copyCompressedToBody:MemoryStream->Task) = 
                 task {
 
                     let noCompression =
                         (not contextResponse.Body.CanSeek) || (not contextResponse.Body.CanRead) 
-                            || originalLengthNotEnough
+                            || (originalLengthNotEnough && pipedLengthNotEnough)
                             || (contextResponse.Headers.ContainsKey("Content-Encoding") &&
                                 not(String.IsNullOrWhiteSpace(contextResponse.Headers.["Content-Encoding"])))
 
@@ -311,7 +313,7 @@ module OwinCompression =
                     | true -> 
                         if contextResponse.Body.CanSeek then
                             contextResponse.Body.Seek(0L, SeekOrigin.Begin) |> ignore
-                        do! copy1()
+                        do! copyBufferToBody()
                         return ()
                     | false -> 
 
@@ -334,7 +336,7 @@ module OwinCompression =
                         if contextResponse.Body.CanSeek then
                             contextResponse.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                        do! copy2(zipped)
+                        do! copyBodyToCompressor(zipped)
 
                         zipped.Close()
                         let op = output.ToArray()
@@ -353,7 +355,7 @@ module OwinCompression =
                         if tmpOutput.CanSeek then
                             tmpOutput.Seek(0L, SeekOrigin.Begin) |> ignore
                         
-                        do! copy3 tmpOutput
+                        do! copyCompressedToBody tmpOutput
                         return ()
                     }
             task {
@@ -366,21 +368,34 @@ module OwinCompression =
                     ()
 
                 do! next.Invoke()
+                let pipedLengthNotEnough = contextResponse.Body.CanRead && contextResponse.Body.Length < settings.MinimumSizeToCompress
 
                 let usecompress = isCompressable || checkCompressability (Some buffer)
                 if usecompress && checkNoValidETag contextRequest contextResponse cancellationSrc contextResponse.Body then
-                    let copy1() =
+                    let copyBufferToBody() =
                         task {
                             do! contextResponse.Body.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
                             contextResponse.Body <- streamWebOutput
                         } :> Task
-                    let copy2 (zipped:Stream) = contextResponse.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
-                    let copy3 (zippedData:MemoryStream) =
+                    let copyBodyToCompressor (zipped:Stream) = contextResponse.Body.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
+                    let copyCompressedToBody (zippedData:MemoryStream) =
                         task {
-                            do! zippedData.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
-                            contextResponse.Body <- streamWebOutput
+                            if zippedData.Length = 0 && streamWebOutput.CanRead then
+                                use output = new MemoryStream()
+                                use zipped = 
+                                    match enc with
+                                    | Deflate -> 
+                                        new DeflateStream(output, CompressionMode.Compress) :> Stream
+                                    | GZip -> 
+                                        new GZipStream(output, CompressionMode.Compress) :> Stream
+                                do! streamWebOutput.CopyToAsync(zipped, defaultBufferSize, cancellationToken)
+                                zipped.Close()
+                                contextResponse.Body <- output
+                            else 
+                                do! zippedData.CopyToAsync(streamWebOutput, defaultBufferSize, cancellationToken)
+                                contextResponse.Body <- streamWebOutput
                         } :> Task
-                    return! continuation2 copy1 copy2 copy3
+                    return! continuation2 pipedLengthNotEnough copyBufferToBody copyBodyToCompressor copyCompressedToBody
                 else 
                     return ()
             } :> Task

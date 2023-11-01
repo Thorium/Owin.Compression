@@ -23,6 +23,7 @@ build/
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
+BenchmarkDotNet.Artifacts/
 
 *_i.c
 *_p.c

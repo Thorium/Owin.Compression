@@ -9,3 +9,4 @@ FsUnit.xUnit
 xunit.abstractions
 xunit.core
 xunit.runner.visualstudio
+BenchmarkDotNet

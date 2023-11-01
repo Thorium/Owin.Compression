@@ -12,13 +12,21 @@ open System
 open Microsoft
 
 module MockOwin =
-    let generateResponse (contentBody:string) =
+    let generateResponse (contentBody:string option) =
         let mutable etag = ""
-        let mutable body =  new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes contentBody) :> System.IO.Stream
+        let mutable body =
+            match contentBody with
+            | Some content -> new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes content) :> System.IO.Stream
+            | None -> new System.IO.MemoryStream() :> System.IO.Stream
         let mutable status = 200
+        let setBody v =
+            body <- v
+
         let headers = Owin.HeaderDictionary(Dictionary<string, _>())
         { new Microsoft.Owin.IOwinResponse with
-              member this.Body with get () = body and set v = body <- v
+              member this.Body 
+                with get () = body
+                and set v = setBody v
               member this.ContentLength with get () = Nullable(body.Length) and set v = ()
               member this.ContentType with get () = "html" and set v = ()
               member this.Context = raise (System.NotImplementedException())
@@ -39,13 +47,13 @@ module MockOwin =
               member this.Write(data: byte array, offset: int, count: int): unit = ()
               member this.WriteAsync(text: string): Task = task { return () } :> Task
               member this.WriteAsync(text: string, token: Threading.CancellationToken): Task = task { return () } :> Task 
-              member this.WriteAsync(data: byte array): Task =  task { return () } :> Task
-              member this.WriteAsync(data: byte array, token: Threading.CancellationToken): Task = task { return () } :> Task
-              member this.WriteAsync(data: byte array, offset: int, count: int, token: Threading.CancellationToken): Task = task { return () } :> Task
+              member this.WriteAsync(data: byte array): Task = body.WriteAsync(data, 0, data.Length)
+              member this.WriteAsync(data: byte array, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length)
+              member this.WriteAsync(data: byte array, offset: int, count: int, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length)
         }
     let generateRequest() =
         let headers = Owin.HeaderDictionary(Dictionary<string, _>())
-        headers.Add("Accept-Encoding", [|"deflate"|])
+        headers.Add("Accept-Encoding", [|"gzip"|])
         let mutable path = "/index.html"
         { new Microsoft.Owin.IOwinRequest with
               member this.Accept
@@ -178,39 +186,132 @@ type ``Compress internals fixture`` () =
 
     [<Fact>]
     member test. ``Set status cached`` () =
-        let mockResponse = MockOwin.generateResponse("hello")
+        let mockResponse = MockOwin.generateResponse(Some "hello")
         let dne = OwinCompression.Internals.create304Response mockResponse
         Assert.Equal(304, mockResponse.StatusCode)
 
     [<Fact>]
-    member test. ``Compress stream test small`` () =
+    member test. ``ETag mismatch test`` () =
+        let mockResponse = MockOwin.generateResponse(Some "hello")
+        let mockRequest = Owin.OwinRequest()
+        mockRequest.Headers.Add("If-None-Match", [|"abc"|])
+        let noEtag = OwinCompression.Internals.checkNoValidETag mockRequest mockResponse (new Threading.CancellationTokenSource()) mockResponse.Body
+        Assert.NotEqual(304, mockResponse.StatusCode)
+        Assert.Equal("5D41402ABC4B2A76B9719D911017C592", mockResponse.ETag)
+        Assert.True noEtag
+
+    [<Fact>]
+    member test. ``ETag match test`` () =
+        let mockResponse = MockOwin.generateResponse(Some "hello")
+        let mockRequest = Owin.OwinRequest()
+        mockRequest.Headers.Add("If-None-Match", [|"5D41402ABC4B2A76B9719D911017C592"|])
+        let noEtag = OwinCompression.Internals.checkNoValidETag mockRequest mockResponse (new Threading.CancellationTokenSource()) mockResponse.Body
+        Assert.Equal(304, mockResponse.StatusCode)
+        Assert.False noEtag
+
+    [<Fact>]
+    member test. ``Compress stream test skips small`` () =
         task {
-            let mockResponse = MockOwin.generateResponse("hello")
+            let mockResponse = MockOwin.generateResponse(Some "hello")
             let mockRequest = Owin.OwinRequest()
             let taskReturn = Func<Task>(fun _ -> task { return () } :> Task)
             let! res = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
-            Assert.NotNull(mockResponse.Body)
-        }
+            Assert.NotNull mockResponse.Body
+            Assert.Equal(200,mockResponse.StatusCode)
+            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
+            Assert.Equal("hello",content)
+            Assert.False (mockResponse.Headers.ContainsKey "ETag")
+            return ()
+        } :> Task
 
     [<Fact>]
-    member test. ``Compress stream test`` () =
+    member test. ``Compress stream no-pipeline test`` () =
         task {
             let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" 
-            let mockResponse = MockOwin.generateResponse(longstring)
+            let mockResponse = MockOwin.generateResponse (Some longstring)
+            
             let mockRequest = MockOwin.generateRequest()
             let taskReturn = Func<Task>(fun _ -> task { return () } :> Task)
             let! isOk = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
-            Assert.NotNull(mockResponse.Body)
-        }
+            Assert.NotNull mockResponse.Body
+            Assert.Equal(200,mockResponse.StatusCode)
+            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
+            Assert.True(content.Length < longstring.Length, "wasn't compressed")
+            Assert.Equal("61C7AE02235F7ABD1807869B7B8053D5", mockResponse.ETag)
+            return ()
+        } :> Task
+
+    [<Fact>]
+    member test. ``Compress stream pipeline test`` () =
+        task {
+            let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" 
+            let mockResponse = MockOwin.generateResponse None
+            let mockRequest = MockOwin.generateRequest()
+            let mutable pipelineProcessing = 0
+            let taskReturn = Func<Task>(fun _ ->
+                task {
+                    mockResponse.Body <- new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes longstring) :> System.IO.Stream
+                    pipelineProcessing <- 1
+                    return () } :> Task)
+            let! isOk = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
+            Assert.NotNull mockResponse.Body
+            Assert.Equal(200,mockResponse.StatusCode)
+            Assert.Equal(1,pipelineProcessing)
+            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
+            Assert.True(content.Length < longstring.Length, "wasn't compressed")
+            Assert.Equal("61C7AE02235F7ABD1807869B7B8053D5", mockResponse.ETag)
+            return ()
+        } :> Task
 
     [<Fact>]
     member test. ``Compress file test`` () =
         task {
-            let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" 
-            let mockResponse = MockOwin.generateResponse(longstring)
+            let mockResponse = MockOwin.generateResponse None
             let mockRequest = MockOwin.generateRequest()
             mockRequest.Path <- Owin.PathString "/Owin.Compression.DLL"
             let settings = { OwinCompression.DefaultCompressionSettings with AllowUnknonwnFiletypes = true }
             let! isOk = OwinCompression.Internals.encodeFile SupportedEncodings.Deflate settings mockRequest mockResponse (new Threading.CancellationTokenSource()) 
-            Assert.NotNull(mockResponse.Body)
+            Assert.NotNull mockResponse.Body
+            Assert.Equal(200,mockResponse.StatusCode)
+            Assert.NotNull mockResponse.ETag
+            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() 
+            Assert.True(content.Length > 0)
+            
+            return ()
+        } :> Task
+        
+(*
+open BenchmarkDotNet.Attributes
+open BenchmarkDotNet.Running
+open BenchmarkDotNet.Jobs
+
+[<SimpleJob (RuntimeMoniker.Net472)>] [<MemoryDiagnoser(true)>]
+type Benchmarks() =
+
+    let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" |> System.Text.Encoding.UTF8.GetBytes
+    [<Benchmark>]
+    member this.CompressPipeline () =
+        task {
+            let mockResponse = MockOwin.generateResponse None
+            let mockRequest = MockOwin.generateRequest()
+            let taskReturn = Func<Task>(fun _ ->
+                task {
+                    mockResponse.Body <- new System.IO.MemoryStream(longstring) :> System.IO.Stream
+                    return () } :> Task)
+            let! isOk = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
+            return 1
         }
+
+module BenchmarkTest =
+    
+    BenchmarkRunner.Run<Benchmarks>(
+        BenchmarkDotNet.Configs.ManualConfig
+            .Create(BenchmarkDotNet.Configs.DefaultConfig.Instance)
+            .WithOptions(BenchmarkDotNet.Configs.ConfigOptions.DisableOptimizationsValidator))
+    |> ignore
+
+//    | Method           | Mean     | Error     | StdDev    | Gen0   | Allocated |
+//    |----------------- |---------:|----------:|----------:|-------:|----------:|
+//    | CompressPipeline | 1.733 ms | 0.0113 ms | 0.0106 ms | 1.9531 |  18.58 KB |
+
+*)

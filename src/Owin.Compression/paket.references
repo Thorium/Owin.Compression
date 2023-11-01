@@ -1,3 +1,5 @@
 Owin
 FSharp.Core
 Microsoft.Owin
+group Test
+BenchmarkDotNet
