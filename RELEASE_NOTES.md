@@ -1,4 +1,4 @@
-### 1.0.35 - October 31 2023
+### 1.0.37 - November 1 2023
 * Minor performance improvements
 * FSharp.Core update
 

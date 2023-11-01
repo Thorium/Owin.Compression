@@ -3,7 +3,7 @@ title
     Owin.Compression
 owners
     Tuomas Hietanen
-authors 
+authors
     Tuomas Hietanen
 projectUrl
     http://github.com/Thorium/Owin.Compression
@@ -30,16 +30,14 @@ dependencies
     Microsoft.Owin ~> LOCKEDVERSION
   framework: netstandard20
     FSharp.Core >= LOCKEDVERSION
-    NETStandard.Library ~> LOCKEDVERSION
-    Microsoft.AspNetCore.Http.Abstractions ~> LOCKEDVERSION
-    Microsoft.AspNetCore.Http.Features ~> LOCKEDVERSION
-    Microsoft.Extensions.Primitives ~> LOCKEDVERSION
+    Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
+    Microsoft.AspNetCore.Http.Features >= LOCKEDVERSION-standard
+    Microsoft.Extensions.Primitives >= LOCKEDVERSION-standard
   framework: netstandard21
     FSharp.Core >= LOCKEDVERSION
-    NETStandard.Library ~> LOCKEDVERSION
-    Microsoft.AspNetCore.Http.Abstractions ~> LOCKEDVERSION
-    Microsoft.AspNetCore.Http.Features ~> LOCKEDVERSION
-    Microsoft.Extensions.Primitives ~> LOCKEDVERSION
+    Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
+    Microsoft.AspNetCore.Http.Features >= LOCKEDVERSION-standard
+    Microsoft.Extensions.Primitives >= LOCKEDVERSION-standard
 files
 	../../bin/**/Owin.Compression.dll
 	../../bin/**/Owin.Compression.xml
