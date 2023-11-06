@@ -102,10 +102,12 @@ module OwinCompression =
             else ValueNone
 
         let create304Response (contextResponse:IOwinResponse) =
-            contextResponse.StatusCode <- 304
+            if contextResponse.StatusCode <> 304 then
+                contextResponse.StatusCode <- 304
             contextResponse.Body.Close()
             contextResponse.Body <- Stream.Null
-            contextResponse.ContentLength <- Nullable()
+            if contextResponse.ContentLength.HasValue then
+                contextResponse.ContentLength <- Nullable()
             false
 
         let checkNoValidETag (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) (itemToCheck:Stream) =
@@ -218,7 +220,8 @@ module OwinCompression =
                                     contextResponse.Headers.["Transfer-Encoding"] <- "chunked"
                                 true
                             else
-                                contextResponse.ContentLength <- Nullable op.LongLength
+                                if (not contextResponse.ContentLength.HasValue) || (contextResponse.ContentLength.Value <> -1 && contextResponse.ContentLength.Value <> op.LongLength) then
+                                    contextResponse.ContentLength <- Nullable op.LongLength
                                 false
 
                         with | _ -> 
@@ -323,7 +326,8 @@ module OwinCompression =
                                         || contextResponse.Headers.["Transfer-Encoding"] <> "chunked" then
                                         contextResponse.Headers.["Transfer-Encoding"] <- "chunked"
                                 else
-                                    contextResponse.ContentLength <- Nullable(op.LongLength)
+                                    if (not contextResponse.ContentLength.HasValue) || (contextResponse.ContentLength.Value <> -1 && contextResponse.ContentLength.Value <> op.LongLength) then
+                                        contextResponse.ContentLength <- Nullable(op.LongLength)
                             with | _ -> () // Content length info is not so important...
 
                         use tmpOutput = new MemoryStream(op)

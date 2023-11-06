@@ -1,3 +1,6 @@
+### 1.0.38 - November 1 2023
+* Less exception catching on runtime
+
 ### 1.0.37 - November 1 2023
 * Minor performance improvements
 * FSharp.Core update
