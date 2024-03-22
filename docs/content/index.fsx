@@ -30,6 +30,15 @@ It compresses the web request responses to make the transfer smaller, and it sup
 
 Default compression used is deflate, then gzip, as deflate should be faster.
 
+eTag-caching
+----------
+
+1. When the server reads the content before compression, it calculates a hash-code over it.
+2. The hash-code is sent as ETag response header to the client with the response
+3. The next time the client asks the same resource, it sends an If-None-Match header in the request with the same value.
+4. After the server reads the content before the compression, it calculates a hash-code over it. If it matches the If-None-Match of the request, the server can skip the compression and skip the sending and just send http status code 304 to the client which means "use what you have, it's not modified since".
+
+
 Example #1
 ----------
 

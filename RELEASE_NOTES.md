@@ -1,3 +1,6 @@
+### 1.0.39 - March 22 2024
+* Reference component updates, PR #13
+
 ### 1.0.38 - November 1 2023
 * Less exception catching on runtime
 
