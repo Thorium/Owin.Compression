@@ -1,5 +1,6 @@
-### 1.0.39 - March 22 2024
+### 1.0.40 - March 22 2024
 * Reference component updates, PR #13
+* Package frameworks to .NET 4.7.2, .NET Standard 2.0, and 2.1
 
 ### 1.0.38 - November 1 2023
 * Less exception catching on runtime
