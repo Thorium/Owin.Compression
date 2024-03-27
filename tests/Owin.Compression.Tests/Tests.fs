@@ -310,8 +310,18 @@ module BenchmarkTest =
             .WithOptions(BenchmarkDotNet.Configs.ConfigOptions.DisableOptimizationsValidator))
     |> ignore
 
+// To run: Change outpuy type from Library to Exe, then:
+// dotnet build --configuration Release
+// dotnet run --configuration Release
+
+// .NET 4.8.1
 //    | Method           | Mean     | Error     | StdDev    | Gen0   | Allocated |
 //    |----------------- |---------:|----------:|----------:|-------:|----------:|
-//    | CompressPipeline | 1.733 ms | 0.0113 ms | 0.0106 ms | 1.9531 |  18.58 KB |
+//    | CompressPipeline | 1.680 ms | 0.0108 ms | 0.0101 ms | 1.9531 |     23 KB |
+
+// .NET 8.0
+//    | Method           | Mean     | Error   | StdDev  | Allocated |
+//    |----------------- |---------:|--------:|--------:|----------:|
+//    | CompressPipeline | 618.7 us | 3.36 us | 3.14 us |  11.09 KB |
 
 *)
