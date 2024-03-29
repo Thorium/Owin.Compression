@@ -7,7 +7,7 @@
     <OutputPath>..\..\bin</OutputPath>
     <AssemblyName>Owin.Compression</AssemblyName>
     <Name>Owin.Compression</Name>
-    <TargetFSharpCoreVersion>7.0.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>8.0.0.0</TargetFSharpCoreVersion>
     <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
 	<PackageTags>owin, compression, gzip, aspnetcore, webserver, deflate, etag, kestrel, speedup, request, compress, middleware, pipeline</PackageTags>
 	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -34,9 +34,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.400" />
+    <PackageReference Update="FSharp.Core" Version="8.0.200" />
   </ItemGroup>
 </Project>

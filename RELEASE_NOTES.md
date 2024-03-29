@@ -1,3 +1,6 @@
+### 1.0.41 - March 22 2024
+* ASP.NET Core side reference updates
+
 ### 1.0.40 - March 22 2024
 * Reference component updates, PR #13
 * Package frameworks to .NET 4.7.2, .NET Standard 2.0, and 2.1
