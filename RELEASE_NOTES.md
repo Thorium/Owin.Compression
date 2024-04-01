@@ -1,3 +1,7 @@
+### 1.0.42 - April 1 2024
+* More tolerant pipeline config.
+* Minor performance improvements.
+
 ### 1.0.41 - March 22 2024
 * ASP.NET Core side reference updates
 

@@ -227,7 +227,7 @@ type ``Compress internals fixture`` () =
     [<Fact>]
     member test. ``Compress stream no-pipeline test`` () =
         task {
-            let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" 
+            let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abcab460iw3[pn ZWV$dZZo1093ba0v|!!Äcx0c23" 
             let mockResponse = MockOwin.generateResponse (Some longstring)
             
             let mockRequest = MockOwin.generateRequest()
@@ -237,14 +237,15 @@ type ``Compress internals fixture`` () =
             Assert.Equal(200,mockResponse.StatusCode)
             let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
             Assert.True(content.Length < longstring.Length, "wasn't compressed")
-            Assert.Equal("61C7AE02235F7ABD1807869B7B8053D5", mockResponse.ETag)
+            Assert.True(content.Length > 0, "Result shouldn't be empty")
+            Assert.Equal("3FFF606E12076433E80412E5048FF643", mockResponse.ETag)
             return ()
         } :> Task
 
     [<Fact>]
     member test. ``Compress stream pipeline test`` () =
         task {
-            let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" 
+            let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abcab460iw3[pn ZWV$dZZo1093ba0v|!!Äcx0c23" 
             let mockResponse = MockOwin.generateResponse None
             let mockRequest = MockOwin.generateRequest()
             let mutable pipelineProcessing = 0
@@ -259,7 +260,8 @@ type ``Compress internals fixture`` () =
             Assert.Equal(1,pipelineProcessing)
             let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
             Assert.True(content.Length < longstring.Length, "wasn't compressed")
-            Assert.Equal("61C7AE02235F7ABD1807869B7B8053D5", mockResponse.ETag)
+            Assert.True(content.Length > 0, "Result shouldn't be empty")
+            Assert.Equal("3FFF606E12076433E80412E5048FF643", mockResponse.ETag)
             return ()
         } :> Task
 
@@ -285,10 +287,11 @@ open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Running
 open BenchmarkDotNet.Jobs
 
-[<SimpleJob (RuntimeMoniker.Net472)>] [<MemoryDiagnoser(true)>]
+[<SimpleJob (RuntimeMoniker.Net80)>] [<MemoryDiagnoser(true)>]
 type Benchmarks() =
 
-    let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abc" |> System.Text.Encoding.UTF8.GetBytes
+    let longstring =  [|1 .. 100_000|] |> Array.map(fun _ -> "x") |> String.concat "abcab460iw3[pn ZWV$dZZo1093ba0v|!!Äcx0c23" |> System.Text.Encoding.UTF8.GetBytes
+
     [<Benchmark>]
     member this.CompressPipeline () =
         task {
@@ -315,13 +318,13 @@ module BenchmarkTest =
 // dotnet run --configuration Release
 
 // .NET 4.8.1
-//    | Method           | Mean     | Error     | StdDev    | Gen0   | Allocated |
-//    |----------------- |---------:|----------:|----------:|-------:|----------:|
-//    | CompressPipeline | 1.680 ms | 0.0108 ms | 0.0101 ms | 1.9531 |     23 KB |
+// | Method           | Mean     | Error    | StdDev   | Allocated |
+// |----------------- |---------:|---------:|---------:|----------:|
+// | CompressPipeline | 17.23 ms | 0.228 ms | 0.213 ms |  77.81 KB |
 
 // .NET 8.0
-//    | Method           | Mean     | Error   | StdDev  | Allocated |
-//    |----------------- |---------:|--------:|--------:|----------:|
-//    | CompressPipeline | 618.7 us | 3.36 us | 3.14 us |  11.09 KB |
+// | Method           | Mean     | Error     | StdDev    | Gen0   | Allocated |
+// |----------------- |---------:|----------:|----------:|-------:|----------:|
+// | CompressPipeline | 6.738 ms | 0.0527 ms | 0.0493 ms | 7.8125 |  98.15 KB |
 
 *)

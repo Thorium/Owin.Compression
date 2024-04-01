@@ -6,8 +6,8 @@
     <RootNamespace>Owin.Compression</RootNamespace>
     <AssemblyName>Owin.Compression</AssemblyName>
     <OutputPath>..\..\bin</OutputPath>
-    <TargetFramework>net472</TargetFramework>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFramework>net481</TargetFramework>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>8.0.0.0</TargetFSharpCoreVersion>
     <Name>Owin.Compression</Name>
     <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
