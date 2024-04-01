@@ -373,13 +373,9 @@ module OwinCompression =
 
                 do! next.Invoke()
 
-                let dataLength =
-                    if contextResponse.Body.Length = 0 && contextResponse.Body = buffer then
-                        streamWebOutput.Length
-                    else
-                        contextResponse.Body.Length
-
-                let pipedLengthNotEnough = contextResponse.Body.CanRead && dataLength < settings.MinimumSizeToCompress
+                let pipedLengthNotEnough =
+                    contextResponse.Body.CanRead &&
+                        (if contextResponse.Body.Length = 0 && contextResponse.Body = buffer && streamWebOutput.CanRead then streamWebOutput.Length else contextResponse.Body.Length) < settings.MinimumSizeToCompress
 
                 let usecompress = isCompressable || checkCompressability (Some buffer)
                 if usecompress && checkNoValidETag contextRequest contextResponse cancellationSrc contextResponse.Body then
