@@ -1,3 +1,6 @@
+### 1.0.45 - April 1 2024
+* NuGet Net Framework 4.7.2 dependency corrected to version 4.8
+
 ### 1.0.44 - April 1 2024
 * More tolerant pipeline config.
 * Minor performance improvements.

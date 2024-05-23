@@ -24,7 +24,7 @@ summary
 description
     Compression (Deflate / GZip) module for Microsoft OWIN self host web server. With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to reduce amount of web traffic.
 dependencies
-  framework: net472
+  framework: net48
     Owin >= 1.0.0
     FSharp.Core >= LOCKEDVERSION
     Microsoft.Owin ~> LOCKEDVERSION
