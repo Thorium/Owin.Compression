@@ -164,12 +164,25 @@ module OwinCompression =
         let internal getFile (settings:CompressionSettings) (contextRequest:HttpRequest) (contextResponse:HttpResponse) (cancellationSrc:Threading.CancellationTokenSource) =
             let unpacked :string = 
                     let p = contextRequest.Path.ToString()
-                    let p2 = match p.StartsWith("/") with true -> p.Substring(1) | false -> p
                     if not(settings.AllowRootDirectories) && p.Contains ".." then failwith "Invalid path"
                     if File.Exists p then failwith "Invalid resource"
+                    let p2 =
+#if NETSTANDARD21
+                        match p.StartsWith '/' with
+#else
+                        match p.StartsWith "/" with
+#endif
+                        | true -> p.Substring 1
+                        | false -> p
                     Path.Combine ([| settings.ServerPath; p2|])
 
-            let extension = if not (unpacked.Contains ".") then "" else unpacked.Substring(unpacked.LastIndexOf ".")
+            let extension =
+#if NETSTANDARD21
+                if not (unpacked.Contains '.') then ""
+#else
+                if not (unpacked.Contains ".") then ""
+#endif
+                else unpacked.Substring(unpacked.LastIndexOf '.')
             let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
 
             match typemap.TryGetValue extension with
@@ -213,7 +226,11 @@ module OwinCompression =
                     if isNull bytes then
                         return ()
                     else
+#if NETSTANDARD21
+                        return! contextResponse.Body.WriteAsync(bytes.AsMemory(0, bytes.Length), cancellationToken)
+#else
                         return! contextResponse.Body.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
+#endif
                 else
 
                 use output = new MemoryStream()
@@ -227,7 +244,11 @@ module OwinCompression =
                     | GZip -> 
                         contextResponse.Headers.Add("Content-Encoding", StringValues("gzip"))
                         new GZipStream(output, CompressionMode.Compress) :> Stream
+#if NETSTANDARD21
+                let! t1 = zipped.WriteAsync(bytes.AsMemory(0, bytes.Length), cancellationToken)
+#else
                 let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
+#endif
                 t1 |> ignore
                 zipped.Close()
                 output.Close()
@@ -255,16 +276,24 @@ module OwinCompression =
                 if doStream then
                     return! zipped.CopyToAsync(contextResponse.Body, defaultBufferSize, cancellationToken)
                 else
+#if NETSTANDARD21
+                    return! contextResponse.Body.WriteAsync(op.AsMemory(0, op.Length), cancellationToken)
+#else
                     return! contextResponse.Body.WriteAsync(op, 0, op.Length, cancellationToken)
+#endif
             } :> Task
 
 
         let compressableExtension (settings:CompressionSettings) (path:string) =
             match path with
             | null -> true
-            | x when x.Contains(".") -> 
+#if NETSTANDARD21
+            | x when x.Contains '.' -> 
+#else
+            | x when x.Contains "." -> 
+#endif
                 let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
-                typemap.ContainsKey(x.Substring(x.LastIndexOf "."))
+                typemap.ContainsKey(x.Substring(x.LastIndexOf '.'))
             | _ -> false
 
         let encodeStream (enc:SupportedEncodings) (settings:CompressionSettings) (contextRequest:HttpRequest) (contextResponse:HttpResponse) (cancellationSrc:Threading.CancellationTokenSource) (next:Func<Task>) =
@@ -288,7 +317,11 @@ module OwinCompression =
                 else 
                     let contentType = 
                         // We are not interested of charset, etc:
-                        match contextResponse.ContentType.Contains(";") with
+#if NETSTANDARD21
+                        match contextResponse.ContentType.Contains ';' with
+#else
+                        match contextResponse.ContentType.Contains ";" with
+#endif
                         | false -> contextResponse.ContentType.ToLower()
                         | true -> contextResponse.ContentType.Split(';').[0].ToLower()
                     if settings.AllowedExtensionAndMimeTypes
@@ -445,7 +478,12 @@ module OwinCompression =
                     | File ->
                         task {
                             let! comp, r = getFile settings context.Request context.Response cancellationSrc
-                            if comp then return! context.Response.Body.WriteAsync(r, 0, r.Length, cancellationToken)
+                            if comp then
+#if NETSTANDARD21
+                                return! context.Response.Body.WriteAsync(r.AsMemory(0, r.Length), cancellationToken)
+#else
+                                return! context.Response.Body.WriteAsync(r, 0, r.Length, cancellationToken)
+#endif
                             else return! Task.Delay 50 
                         } :> Task
                     | ContextResponseBody(next) ->

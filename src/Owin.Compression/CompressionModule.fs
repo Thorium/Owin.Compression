@@ -142,12 +142,15 @@ module OwinCompression =
         let internal getFile (settings:CompressionSettings) (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) =
             let unpacked :string = 
                     let p = contextRequest.Path.ToString()
-                    let p2 = match p.StartsWith("/") with true -> p.Substring(1) | false -> p
                     if not(settings.AllowRootDirectories) && p.Contains ".." then failwith "Invalid path"
                     if File.Exists p then failwith "Invalid resource"
+                    let p2 =
+                        match p.StartsWith "/" with
+                        | true -> p.Substring 1
+                        | false -> p
                     Path.Combine ([| settings.ServerPath; p2|])
 
-            let extension = if not (unpacked.Contains ".") then "" else unpacked.Substring(unpacked.LastIndexOf ".")
+            let extension = if not (unpacked.Contains ".") then "" else unpacked.Substring(unpacked.LastIndexOf '.')
             let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
 
             match typemap.TryGetValue extension with
@@ -240,7 +243,7 @@ module OwinCompression =
             | null -> true
             | x when x.Contains(".") -> 
                 let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
-                typemap.ContainsKey(x.Substring(x.LastIndexOf "."))
+                typemap.ContainsKey(x.Substring(x.LastIndexOf '.'))
             | _ -> false
 
         let encodeStream (enc:SupportedEncodings) (settings:CompressionSettings) (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) (next:Func<Task>)  =
@@ -427,7 +430,8 @@ module OwinCompression =
                     | File ->
                         task {
                             let! comp, r = getFile settings context.Request context.Response cancellationSrc
-                            if comp then return! context.Response.WriteAsync(r, cancellationToken)
+                            if comp then
+                                return! context.Response.WriteAsync(r, cancellationToken)
                             else return! Task.Delay 50 
                         } :> Task
                     | ContextResponseBody(next) ->

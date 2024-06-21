@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--<TargetFrameworks>netstandard2.0</TargetFrameworks>-->
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <AllowCrossTargeting>true</AllowCrossTargeting>
     <DefineConstants>NETSTANDARD</DefineConstants>
     <OutputPath>..\..\bin</OutputPath>
@@ -17,7 +17,7 @@
 	<FsDocsWarnOnMissingDocs>false</FsDocsWarnOnMissingDocs>
 	<FsDocsLogoLink>https://github.com/Thorium/Owin.Compression/raw/master/docs/files/img/logo.png</FsDocsLogoLink>
 	<FsDocsTheme>default</FsDocsTheme>
-
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net8.0' " >NETSTANDARD21</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="mscorlib" />

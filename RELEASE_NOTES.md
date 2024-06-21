@@ -1,3 +1,6 @@
+### 1.0.46 - June 21 2024
+* Performance optimizations when on .NET Standard 2.1 (NET 6.0 / NET 8.0)
+
 ### 1.0.45 - April 1 2024
 * NuGet Net Framework 4.7.2 dependency corrected to version 4.8
 
