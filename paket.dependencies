@@ -6,6 +6,7 @@ nuget Microsoft.Owin.Hosting
 nuget Microsoft.Owin.Host.HttpListener
 nuget Microsoft.Owin.StaticFiles
 nuget FSharp.Core
+nuget System.Memory
 
 group standard
   source https://nuget.org/api/v2

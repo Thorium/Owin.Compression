@@ -34,6 +34,45 @@ type CompressionSettings = {
     }
 
 module OwinCompression =
+
+    type Stream with // ReadOnlyMemory
+        member this.WriteAsync(buffer:ReadOnlyMemory<byte>, ct:System.Threading.CancellationToken) : Task =
+            let ok, array = System.Runtime.InteropServices.MemoryMarshal.TryGetArray buffer
+            if ok then
+                task {
+                    return! this.WriteAsync(array.Array, array.Offset, array.Count, ct)
+                } 
+            else
+
+            let sharedBuffer = System.Buffers.ArrayPool<byte>.Shared.Rent buffer.Length
+            buffer.Span.CopyTo sharedBuffer
+            task {
+                try
+                    do! this.WriteAsync(sharedBuffer, 0, buffer.Length, ct)
+                    return ()
+                finally
+                    System.Buffers.ArrayPool<byte>.Shared.Return sharedBuffer
+            }
+    type IOwinResponse with
+        member this.WriteAsync(buffer:ReadOnlyMemory<byte>, ct:System.Threading.CancellationToken) : Task =
+            let ok, array = System.Runtime.InteropServices.MemoryMarshal.TryGetArray buffer
+            if ok then
+                task {
+                    return! this.WriteAsync(array.Array, array.Offset, array.Count, ct)
+                } 
+            else
+
+            let sharedBuffer = System.Buffers.ArrayPool<byte>.Shared.Rent buffer.Length
+            buffer.Span.CopyTo sharedBuffer
+            task {
+                try
+                    do! this.WriteAsync(sharedBuffer, 0, buffer.Length, ct)
+                    return ()
+                finally
+                    System.Buffers.ArrayPool<byte>.Shared.Return sharedBuffer
+            }
+
+
 #if INTERACTIVE
     let basePath = __SOURCE_DIRECTORY__;
 #else
@@ -192,7 +231,7 @@ module OwinCompression =
                     if isNull bytes then
                         return ()
                     else
-                        return! contextResponse.WriteAsync(bytes, cancellationToken)
+                        return! contextResponse.WriteAsync(bytes.AsMemory(), cancellationToken)
                 else
 
                 use output = new MemoryStream()
@@ -206,7 +245,7 @@ module OwinCompression =
                     | GZip -> 
                         contextResponse.Headers.Add("Content-Encoding", [|"gzip"|])
                         new GZipStream(output, CompressionMode.Compress) :> Stream
-                let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
+                let! t1 = zipped.WriteAsync(bytes.AsMemory(0, bytes.Length), cancellationToken)
                 t1 |> ignore
                 zipped.Close()
                 output.Close()
@@ -235,7 +274,7 @@ module OwinCompression =
                 if doStream then
                     return! zipped.CopyToAsync(contextResponse.Body, defaultBufferSize, cancellationToken)
                 else
-                    return! contextResponse.WriteAsync(op, cancellationToken)
+                    return! contextResponse.WriteAsync(op.AsMemory(), cancellationToken)
             } :> Task
 
         let compressableExtension (settings:CompressionSettings) (path:string) =
@@ -431,7 +470,7 @@ module OwinCompression =
                         task {
                             let! comp, r = getFile settings context.Request context.Response cancellationSrc
                             if comp then
-                                return! context.Response.WriteAsync(r, cancellationToken)
+                                return! context.Response.WriteAsync(r.AsMemory(), cancellationToken)
                             else return! Task.Delay 50 
                         } :> Task
                     | ContextResponseBody(next) ->

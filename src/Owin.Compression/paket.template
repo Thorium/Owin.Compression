@@ -28,6 +28,7 @@ dependencies
     Owin >= 1.0.0
     FSharp.Core >= LOCKEDVERSION
     Microsoft.Owin ~> LOCKEDVERSION
+    System.Memory ~> LOCKEDVERSION
   framework: netstandard20
     FSharp.Core >= LOCKEDVERSION
     Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
