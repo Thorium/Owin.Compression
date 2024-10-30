@@ -14,7 +14,7 @@
 Owin.Compression
 ======================
 
-Owin.Compression (Deflate / GZip) module ("middleware") for Microsoft OWIN pipeline. Can be used with .NET Full, .NET Core, .NET Standard, .NET6.0, and so on. Works with Selfhost and AspNetCore (e.g. with Kestrel, which is OWIN based server).
+Owin.Compression (Deflate / GZip) module ("middleware") for the Microsoft OWIN pipeline. It can be used with .NET Full, .NET Core, .NET Standard, .NET6.0, and so on. It also works with Selfhost and AspNetCore (e.g. with Kestrel, which is OWIN based server).
 It compresses the web request responses to make the transfer smaller, and it supports eTag caching.
 
 <div class="row">
@@ -28,14 +28,14 @@ It compresses the web request responses to make the transfer smaller, and it sup
   <div class="span1"></div>
 </div>
 
-Default compression used is deflate, then gzip, as deflate should be faster.
+The default compression used is deflate, then gzip, as deflate should be faster.
 
 eTag-caching
 ----------
 
 1. When the server reads the content before compression, it calculates a hash-code over it.
 2. The hash-code is sent as ETag response header to the client with the response
-3. The next time the client asks the same resource, it sends an If-None-Match header in the request with the same value.
+3. The next time the client asks for the same resource, it sends an If-None-Match header in the request with the same value.
 4. After the server reads the content before the compression, it calculates a hash-code over it. If it matches the If-None-Match of the request, the server can skip the compression and skip the sending and just send http status code 304 to the client which means "use what you have, it's not modified since".
 
 
@@ -79,7 +79,7 @@ And now your files are smaller than with e.g. just Microsoft.Owin.StaticFiles -l
 
 <img src="https://raw.githubusercontent.com/Thorium/Owin.Compression/master/screen.png" alt="compressed" width="1000"/>
 
-Even though the browser sees everything as plain text, the traffic is actually transfered as compressed format.
+Even though the browser sees everything as plain text, the traffic is actually transferred in compressed format.
 You can monitor the traffic with e.g. Fiddler.
 
 Example #2
@@ -164,7 +164,7 @@ Example #4
 ----------
 
 Running on ASP.NET Core web API on .NET 6.0. You can use C# but this example is in F#
-just because shorter syntax. The full project is available at tests-folder of this project:
+just because of the shorter syntax. The full project is available in tests-folder of this project:
 
 *)
 
@@ -200,7 +200,7 @@ https://github.com/Thorium/Owin.Compression/tree/master/tests/Aspnet.Core.WebAPI
 Example #5
 ----------
 
-More complete example can be found <a href="https://github.com/Thorium/WebsitePlayground">here</a>.
+More complete examples can be found <a href="https://github.com/Thorium/WebsitePlayground">here</a>.
 
 
 Samples & documentation
@@ -221,10 +221,10 @@ Contributing and copyright
 
 The project is hosted on [GitHub][gh] where you can [report issues][issues], fork 
 the project and submit pull requests. If you're adding a new public API, please also 
-consider adding [samples][content] that can be turned into a documentation. You might
+consider adding [samples][content] that can be turned into documentation. You might
 also want to read the [library design notes][readme] to understand how it works.
 
-The library is available under Public Domain license, which allows modification and 
+The library is available under a Public Domain license, which allows modification and 
 redistribution for both commercial and non-commercial purposes. For more information see the 
 [License file][license] in the GitHub repository. 
 

@@ -510,8 +510,8 @@ type CompressionExtensions =
     static member UseCompressionModule(app:IApplicationBuilder) =
         CompressionExtensions.UseCompressionModule(app, DefaultCompressionSettings)
 
-    /// You can set a path that is url that will be captured.
-    /// The subsequent url-path will be mapped to server path.
+    /// You can set a path, which is the URL that will be captured.
+    /// The subsequent url-path will be mapped to the server path.
     [<Extension>]
     static member MapCompressionModule(app:IApplicationBuilder, path:PathString, settings:CompressionSettings) =
         app.Map(path, fun ap ->
@@ -532,8 +532,8 @@ type CompressionExtensions =
             } :> Task
         )
 
-    /// You can set a path that is url that will be captured.
-    /// The subsequent url-path will be mapped to server path.
+    /// You can set a path, which is the URL that will be captured.
+    /// The subsequent url-path will be mapped to the server path.
     /// Uses OwinCompression.DefaultCompressionSettings
     [<Extension>]
     static member MapCompressionModule(app:IApplicationBuilder, path:PathString) =

@@ -11,7 +11,7 @@
 (**
 # Using this library (C-Sharp) #
 
-Create new C# console application project (.NET 4.5 or more). Add reference to NuGet-packages:
+Create a new C# console application project (.NET 4.5 or more). Add reference to NuGet-packages:
 
 - Microsoft.Owin
 - Microsoft.Owin.Hosting
@@ -89,7 +89,7 @@ do()
 Microsoft.Owin.Hosting.WebApp.Start<MyWebStartup> "http://*:8080"
 
 (**
-Or you can use app.UseCompressionModule() in the beginning of the configuration to compress the whole response.
+You can also use app.UseCompressionModule() at the beginning of the configuration to compress the whole response.
 *)
 
 type MyWebStartupExample2() =

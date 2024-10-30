@@ -15,7 +15,7 @@ type SupportedEncodings =
 | Deflate
 | GZip
 
-/// Do you fetch files or do you encode context.Response.Body?
+/// Do you fetch files, or do you encode context.Response.Body?
 type ResponseMode =
 | File
 | ContextResponseBody of Next: Func<Task>
@@ -458,8 +458,8 @@ type CompressionExtensions =
     static member UseCompressionModule(app:IAppBuilder) =
         CompressionExtensions.UseCompressionModule(app, DefaultCompressionSettings)
 
-    /// You can set a path that is url that will be captured.
-    /// The subsequent url-path will be mapped to server path.
+    /// You can set a path, which is the URL that will be captured.
+    /// The subsequent url-path will be mapped to the server path.
     [<Extension>]
     static member MapCompressionModule(app:IAppBuilder, path:string, settings:CompressionSettings) =
         app.Map(path, fun ap ->
@@ -467,8 +467,8 @@ type CompressionExtensions =
             (Internals.compress context settings ResponseMode.File)() 
         ))
 
-    /// You can set a path that is url that will be captured.
-    /// The subsequent url-path will be mapped to server path.
+    /// You can set a path, which is the URL that will be captured.
+    /// The subsequent url-path will be mapped to the server path.
     /// Uses OwinCompression.DefaultCompressionSettings
     [<Extension>]
     static member MapCompressionModule(app:IAppBuilder, path:string) =
