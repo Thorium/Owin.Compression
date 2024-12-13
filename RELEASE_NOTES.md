@@ -1,3 +1,6 @@
+### 1.0.47 - December 13 2024
+* Nuget package infromation update
+
 ### 1.0.46 - June 21 2024
 * Performance optimizations when on .NET Standard 2.1 (NET 6.0 / NET 8.0)
 

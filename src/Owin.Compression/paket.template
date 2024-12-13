@@ -16,13 +16,13 @@ requireLicenseAcceptance
 copyright
     Copyright 2015
 tags
-    OWIN SelfHost GZip Deflate compress pack self host file system pipeline Microsoft
-	ASPNET ASP.NET Core Web API Kestrel
+    OWIN SelfHost eTag AspNetCore GZip Deflate compress pack self host file system pipeline Microsoft
+	ASPNET ASP.NET Core Web API Kestrel caching
 summary
-    Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipeline.
-	Supports also AspNetCore, for example running WebAPI on .NET6.0 and Kestrel.
+    Compression (Deflate / GZip) and eTag caching module for Microsoft OWIN Selfhost filesystem pipeline.
+	It supports also AspNetCore, for example running WebAPI on .NET6.0+ and Kestrel.
 description
-    Compression (Deflate / GZip) module for Microsoft OWIN self host web server. With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to reduce amount of web traffic.
+    Compression (Deflate / GZip) module for Microsoft OWIN self-host and AspNetCore/Kestrel web servers. Built-in eTag caching. With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to the reduce amount of web traffic.
 dependencies
   framework: net48
     Owin >= 1.0.0
