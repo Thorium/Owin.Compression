@@ -75,7 +75,7 @@
         <hr />
         <div class="container" id="fsdocs-content">
             <h1><a name="Using-this-library-C-Sharp" class="anchor" href="#Using-this-library-C-Sharp">Using this library (C-Sharp)</a></h1>
-<p>Create new C# console application project (.NET 4.5 or more). Add reference to NuGet-packages:</p>
+<p>Create a new C# console application project (.NET 4.5 or more). Add reference to NuGet-packages:</p>
 <ul>
 <li>Microsoft.Owin</li>
 <li>Microsoft.Owin.Hosting</li>
@@ -141,7 +141,7 @@
 
 <span onmouseout="hideTip(event, 'fs14', 22)" onmouseover="showTip(event, 'fs14', 22)" class="id">Microsoft</span><span class="pn">.</span><span class="id">Owin</span><span class="pn">.</span><span class="id">Hosting</span><span class="pn">.</span><span class="id">WebApp</span><span class="pn">.</span><span class="id">Start</span><span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs5', 23)" onmouseover="showTip(event, 'fs5', 23)" class="id">MyWebStartup</span><span class="pn">&gt;</span> <span class="s">&quot;http://*:8080&quot;</span>
 </code></pre>
-<p>Or you can use app.UseCompressionModule() in the beginning of the configuration to compress the whole response.</p>
+<p>You can also use app.UseCompressionModule() at the beginning of the configuration to compress the whole response.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span onmouseout="hideTip(event, 'fs16', 24)" onmouseover="showTip(event, 'fs16', 24)" class="rt">MyWebStartupExample2</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
     <span class="k">member</span> <span class="id">__</span><span class="pn">.</span><span class="fn">Configuration</span><span class="pn">(</span><span onmouseout="hideTip(event, 'fs6', 25)" onmouseover="showTip(event, 'fs6', 25)" class="fn">app</span><span class="pn">:</span><span onmouseout="hideTip(event, 'fs1', 26)" onmouseover="showTip(event, 'fs1', 26)" class="id">Owin</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs7', 27)" onmouseover="showTip(event, 'fs7', 27)" class="id">IAppBuilder</span><span class="pn">)</span> <span class="o">=</span>
         <span onmouseout="hideTip(event, 'fs6', 28)" onmouseover="showTip(event, 'fs6', 28)" class="fn">app</span><span class="pn">.</span><span class="id">UseCompressionModule</span><span class="pn">(</span><span class="pn">)</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs13', 29)" onmouseover="showTip(event, 'fs13', 29)" class="fn">ignore</span>
@@ -170,7 +170,7 @@
 <div class="fsdocs-tip" id="fs9">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The representation of &quot;Value of type &#39;T&quot;&lt;/summary&gt;<br />&lt;param name=&quot;Value&quot;&gt;The input value.&lt;/param&gt;<br />&lt;returns&gt;An option representing the value.&lt;/returns&gt;</em></div>
 <div class="fsdocs-tip" id="fs10">Multiple items<br />[&lt;Struct&gt;]
 type DateTimeOffset =
-  new: dateTime: DateTime -&gt; unit + 8 overloads
+  new: date: DateOnly * time: TimeOnly * offset: TimeSpan -&gt; unit + 8 overloads
   member Add: timeSpan: TimeSpan -&gt; DateTimeOffset
   member AddDays: days: float -&gt; DateTimeOffset
   member AddHours: hours: float -&gt; DateTimeOffset
