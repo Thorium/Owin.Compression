@@ -29,6 +29,8 @@ It compresses the web request responses to make the transfer smaller, and it sup
 </div>
 
 The default compression used is deflate, then gzip, as deflate should be faster.
+This also supports streaming responses. The config allows you to disable deflate and streaming if you prefer.
+
 
 eTag-caching
 ----------
