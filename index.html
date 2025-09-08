@@ -87,7 +87,8 @@ It compresses the web request responses to make the transfer smaller, and it sup
   </div>
   <div class="span1"></div>
 </div>
-<p>The default compression used is deflate, then gzip, as deflate should be faster.</p>
+<p>The default compression used is deflate, then gzip, as deflate should be faster.
+This also supports streaming responses. The config allows you to disable deflate and streaming if you prefer.</p>
 <h2><a name="eTag-caching" class="anchor" href="#eTag-caching">eTag-caching</a></h2>
 <ol>
 <li>When the server reads the content before compression, it calculates a hash-code over it.</li>
