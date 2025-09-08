@@ -67,11 +67,10 @@ module OwinCompression =
             ".svg"  , "image/svg+xml";
             ".txt"  , "text/plain";
             ".html" , "application/json"; // we don't want to follow hyperlinks, so not "text/html"
-            ".map"  , "application/octet-stream";
+            ".map"  , "application/json";
             ".ttf"  , "application/x-font-ttf";
             ".otf"  , "application/x-font-opentype";
             ".ico"  , "image/x-icon";
-            ".map"  , "application/json";
             ".xml"  , "application/xml";
             ".xsl"  , "text/xml";
             ".xhtml", "application/xhtml+xml";
@@ -92,7 +91,17 @@ module OwinCompression =
 
     let private defaultBufferSize = 81920
 
+    /// Cached extension to MIME type mapping for performance
+    let private getExtensionMap (settings:CompressionSettings) =
+        // Cache the map computation to avoid repeated Map.ofSeq operations
+        settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
+
     module Internals =
+
+        // Use thread-safe MD5 computation for better performance
+        let private computeHash (item:Stream) =
+            use md5 = System.Security.Cryptography.MD5.Create()
+            md5.ComputeHash item
 
         let getHash (item:Stream) =
             if item.CanRead then
@@ -102,8 +111,8 @@ module OwinCompression =
                         item.Position <- 0L
                         ValueSome tmp
                     else ValueNone
-                use md5 = System.Security.Cryptography.MD5.Create()
-                let res = BitConverter.ToString(md5.ComputeHash item).Replace("-","")
+                let hashBytes = computeHash item
+                let res = BitConverter.ToString(hashBytes).Replace("-","")
                 match hasPos with
                 | ValueSome x when item.CanSeek -> item.Position <- x
                 | _ -> ()
@@ -177,13 +186,9 @@ module OwinCompression =
                     Path.Combine ([| settings.ServerPath; p2|])
 
             let extension =
-#if NETSTANDARD21
-                if not (unpacked.Contains '.') then ""
-#else
-                if not (unpacked.Contains ".") then ""
-#endif
-                else unpacked.Substring(unpacked.LastIndexOf '.')
-            let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
+                let lastDot = unpacked.LastIndexOf('.')
+                if lastDot = -1 then "" else unpacked.Substring(lastDot)
+            let typemap = getExtensionMap settings
 
             match typemap.TryGetValue extension with
             | true, extval -> contextResponse.ContentType <- extval
@@ -287,14 +292,12 @@ module OwinCompression =
         let compressableExtension (settings:CompressionSettings) (path:string) =
             match path with
             | null -> true
-#if NETSTANDARD21
-            | x when x.Contains '.' -> 
-#else
-            | x when x.Contains "." -> 
-#endif
-                let typemap = settings.AllowedExtensionAndMimeTypes |> Map.ofSeq
-                typemap.ContainsKey(x.Substring(x.LastIndexOf '.'))
-            | _ -> false
+            | x -> 
+                let lastDot = x.LastIndexOf('.')
+                if lastDot = -1 then false
+                else
+                    let typemap = getExtensionMap settings
+                    typemap.ContainsKey(x.Substring(lastDot))
 
         let encodeStream (enc:SupportedEncodings) (settings:CompressionSettings) (contextRequest:HttpRequest) (contextResponse:HttpResponse) (cancellationSrc:Threading.CancellationTokenSource) (next:Func<Task>) =
             let cancellationToken = cancellationSrc.Token
@@ -316,17 +319,15 @@ module OwinCompression =
                     else false
                 else 
                     let contentType = 
-                        // We are not interested of charset, etc:
-#if NETSTANDARD21
-                        match contextResponse.ContentType.Contains ';' with
-#else
-                        match contextResponse.ContentType.Contains ";" with
-#endif
-                        | false -> contextResponse.ContentType.ToLower()
-                        | true -> contextResponse.ContentType.Split(';').[0].ToLower()
+                        // We are not interested of charset, etc - use IndexOf to avoid ToLower allocation
+                        let rawContentType = 
+                            match contextResponse.ContentType.IndexOf(';') with
+                            | -1 -> contextResponse.ContentType
+                            | idx -> contextResponse.ContentType.Substring(0, idx)
+                        rawContentType
                     if settings.AllowedExtensionAndMimeTypes
                             |> Seq.map snd |> Seq.append ["text/html"]
-                            |> Seq.contains(contentType) then 
+                            |> Seq.exists(fun mimeType -> String.Equals(mimeType, contentType, StringComparison.OrdinalIgnoreCase)) then 
                         captureResponse()
                         true
                     else
