@@ -13,6 +13,7 @@ group standard
   nuget Microsoft.AspNetCore.Http.Abstractions
   nuget Microsoft.AspNetCore.Http.Features
   nuget Microsoft.Extensions.Primitives
+  nuget System.Text.Encodings.Web
 
 // nuget Microsoft.AspNet.WebApi.OwinSelfHost
 // nuget Microsoft.Owin.StaticFiles

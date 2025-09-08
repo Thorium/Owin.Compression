@@ -33,11 +33,13 @@ dependencies
     Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
     Microsoft.AspNetCore.Http.Features >= LOCKEDVERSION-standard
     Microsoft.Extensions.Primitives >= LOCKEDVERSION-standard
+    System.Text.Encodings.Web >= LOCKEDVERSION-standard
   framework: netstandard21
     FSharp.Core >= LOCKEDVERSION
     Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
     Microsoft.AspNetCore.Http.Features >= LOCKEDVERSION-standard
     Microsoft.Extensions.Primitives >= LOCKEDVERSION-standard
+    System.Text.Encodings.Web >= LOCKEDVERSION-standard
 files
 	../../bin/**/Owin.Compression.dll
 	../../bin/**/Owin.Compression.xml

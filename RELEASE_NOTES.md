@@ -1,3 +1,7 @@
+### 1.0.48 - September 08 2025
+* Minor performance optimisations
+* Dependency updates
+
 ### 1.0.47 - December 13 2024
 * Nuget package infromation update
 
