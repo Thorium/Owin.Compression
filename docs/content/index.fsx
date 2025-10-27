@@ -1,9 +1,9 @@
 (*** hide ***)
-// This block of code is omitted in the generated HTML documentation. Use 
+// This block of code is omitted in the generated HTML documentation. Use
 // it to define helpers that you do not want to show in the documentation.
 #I "../../bin"
 #I @"./../../packages/Owin/lib/net40"
-#r @"nuget: Microsoft.Owin" 
+#r @"nuget: Microsoft.Owin"
 #r @"nuget: Microsoft.Owin.Hosting"
 #r @"nuget: Microsoft.Owin.Host.HttpListener"
 #r @"nuget: Owin.Compression"
@@ -14,7 +14,7 @@
 Owin.Compression
 ======================
 
-Owin.Compression (Deflate / GZip) module ("middleware") for the Microsoft OWIN pipeline. It can be used with .NET Full, .NET Core, .NET Standard, .NET6.0, and so on. It also works with Selfhost and AspNetCore (e.g. with Kestrel, which is OWIN based server).
+Owin.Compression (Deflate / GZip / Brotli) module ("middleware") for the Microsoft OWIN pipeline. It can be used with .NET Full, .NET Core, .NET Standard, .NET6.0, and so on. It also works with Selfhost and AspNetCore (e.g. with Kestrel, which is OWIN based server).
 It compresses the web request responses to make the transfer smaller, and it supports eTag caching.
 
 <div class="row">
@@ -29,6 +29,7 @@ It compresses the web request responses to make the transfer smaller, and it sup
 </div>
 
 The default compression used is deflate, then gzip, as deflate should be faster.
+Brotli is supported only in .NET Standard 2.1 or higher (e.g., .NET 8.0, .NET 6.0), using ASP.NET Core's built-in BrotliStream support.
 This also supports streaming responses. The config allows you to disable deflate and streaming if you prefer.
 
 
@@ -101,13 +102,13 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
 			public void Configuration(Owin.IAppBuilder app)
 			{
 				var settings = new CompressionSettings(
-					serverPath: "", 
+					serverPath: "",
 					allowUnknonwnFiletypes: false,
-					allowRootDirectories: false, 
-					cacheExpireTime: Microsoft.FSharp.Core.FSharpOption<DateTimeOffset>.None, 
+					allowRootDirectories: false,
+					cacheExpireTime: Microsoft.FSharp.Core.FSharpOption<DateTimeOffset>.None,
 					allowedExtensionAndMimeTypes:
 						new[] { Tuple.Create(".json", "application/json") },
-					minimumSizeToCompress: 1000, 
+					minimumSizeToCompress: 1000,
 					streamingDisabled: false,
 					deflateDisabled: true
 					);
@@ -185,13 +186,13 @@ module Program =
         builder.Services.AddControllers() |> ignore
         let app = builder.Build()
 
-        let compressionSetting = 
-            {OwinCompression.DefaultCompressionSettings with 
+        let compressionSetting =
+            {OwinCompression.DefaultCompressionSettings with
                 CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
                 AllowUnknonwnFiletypes = true
                 StreamingDisabled = true
             }
-        (app :> IApplicationBuilder).UseCompressionModule(compressionSetting) |> ignore 
+        (app :> IApplicationBuilder).UseCompressionModule(compressionSetting) |> ignore
         app.MapControllers() |> ignore
         app.Run()
         0
@@ -208,8 +209,8 @@ More complete examples can be found <a href="https://github.com/Thorium/WebsiteP
 Samples & documentation
 -----------------------
 
-The library comes with comprehensible documentation. 
-It can include tutorials automatically generated from `*.fsx` files in [the content folder][content]. 
+The library comes with comprehensible documentation.
+It can include tutorials automatically generated from `*.fsx` files in [the content folder][content].
 The API reference is automatically generated from Markdown comments in the library implementation.
 
  * [Tutorial](tutorial.html) contains a further explanation of this sample library.
@@ -217,18 +218,18 @@ The API reference is automatically generated from Markdown comments in the libra
  * [API Reference](reference/index.html) contains automatically generated documentation for all types, modules
    and functions in the library. This includes additional brief samples on using most of the
    functions.
- 
+
 Contributing and copyright
 --------------------------
 
-The project is hosted on [GitHub][gh] where you can [report issues][issues], fork 
-the project and submit pull requests. If you're adding a new public API, please also 
+The project is hosted on [GitHub][gh] where you can [report issues][issues], fork
+the project and submit pull requests. If you're adding a new public API, please also
 consider adding [samples][content] that can be turned into documentation. You might
 also want to read the [library design notes][readme] to understand how it works.
 
-The library is available under a Public Domain license, which allows modification and 
-redistribution for both commercial and non-commercial purposes. For more information see the 
-[License file][license] in the GitHub repository. 
+The library is available under a Public Domain license, which allows modification and
+redistribution for both commercial and non-commercial purposes. For more information see the
+[License file][license] in the GitHub repository.
 
   [content]: https://github.com/fsprojects/Owin.Compression/tree/master/docs/content
   [gh]: https://github.com/fsprojects/Owin.Compression

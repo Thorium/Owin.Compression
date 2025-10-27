@@ -23,6 +23,9 @@ open System.Collections.Generic
 type SupportedEncodings =
 | Deflate
 | GZip
+#if NETSTANDARD21
+| Brotli
+#endif
 
 /// Do you fetch files or do you encode context.Response.Body?
 type ResponseMode =
@@ -38,6 +41,9 @@ type CompressionSettings = {
     AllowedExtensionAndMimeTypes: IEnumerable<string*string>;
     MinimumSizeToCompress: int64;
     DeflateDisabled: bool;
+#if NETSTANDARD21
+    BrotliDisabled: bool;
+#endif
     StreamingDisabled: bool;
     ExcludedPaths: IEnumerable<string>;
     }
@@ -56,6 +62,7 @@ module OwinCompression =
         CacheExpireTime = ValueNone
         MinimumSizeToCompress = 1000L
         DeflateDisabled = false
+        BrotliDisabled = false
         StreamingDisabled = false
         ExcludedPaths = [| "/signalr/" |]
         AllowedExtensionAndMimeTypes = 
@@ -250,6 +257,11 @@ module OwinCompression =
                         contextResponse.Headers.Add("Content-Encoding", StringValues("gzip"))
                         new GZipStream(output, CompressionMode.Compress) :> Stream
 #if NETSTANDARD21
+                    | Brotli ->
+                        contextResponse.Headers.Add("Content-Encoding", StringValues("br"))
+                        new BrotliStream(output, CompressionMode.Compress) :> Stream
+#endif
+#if NETSTANDARD21
                 let! t1 = zipped.WriteAsync(bytes.AsMemory(0, bytes.Length), cancellationToken)
 #else
                 let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
@@ -367,6 +379,11 @@ module OwinCompression =
                             | GZip -> 
                                 contextResponse.Headers.Add("Content-Encoding", StringValues("gzip"))
                                 new GZipStream(output, CompressionMode.Compress) :> Stream
+#if NETSTANDARD21
+                            | Brotli ->
+                                contextResponse.Headers.Add("Content-Encoding", StringValues("br"))
+                                new BrotliStream(output, CompressionMode.Compress) :> Stream
+#endif
                         //let! t1 = zipped.WriteAsync(bytes, 0, bytes.Length, cancellationToken)
                         if contextResponse.Body.CanSeek then
                             contextResponse.Body.Seek(0L, SeekOrigin.Begin) |> ignore
@@ -429,6 +446,10 @@ module OwinCompression =
                                         new DeflateStream(output, CompressionMode.Compress) :> Stream
                                     | GZip -> 
                                         new GZipStream(output, CompressionMode.Compress) :> Stream
+#if NETSTANDARD21
+                                    | Brotli ->
+                                        new BrotliStream(output, CompressionMode.Compress) :> Stream
+#endif
 
                                 if streamWebOutput.CanSeek then
                                     streamWebOutput.Seek(0L, SeekOrigin.Begin) |> ignore
@@ -490,8 +511,11 @@ module OwinCompression =
                     | ContextResponseBody(next) ->
                         next.Invoke()
                 if String.IsNullOrEmpty encodings then writeAsyncContext()
-                elif encodings.Contains "deflate" && not(settings.DeflateDisabled) then encodeOutput Deflate
+#if NETSTANDARD21
+                elif encodings.Contains "br" && not(settings.BrotliDisabled) then encodeOutput Brotli
+#endif
                 elif encodings.Contains "gzip" then encodeOutput GZip
+                elif encodings.Contains "deflate" && not(settings.DeflateDisabled) then encodeOutput Deflate
                 else writeAsyncContext()
 
             encodeTask

@@ -1,3 +1,6 @@
+### 1.0.49 - October 27 2025
+* Brotli support added in NetStandard2.1 and NET6-... via .NET built-in functions.
+
 ### 1.0.48 - September 08 2025
 * Minor performance optimisations
 * Dependency updates
