@@ -160,13 +160,13 @@ module OwinCompression =
                 
                 match getHash itemToCheck with
                 | ValueSome etag ->
-                    if noneMatchValue = StringValues(etag) then
+                    if noneMatchValue = StringValues etag then
                         if not (isNull cancellationSrc) then cancellationSrc.Cancel()
                         create304Response contextResponse
                     else
                         if etagVal = StringValues.Empty &&
                                 not contextResponse.Headers.IsReadOnly then
-                            contextResponse.Headers.["ETag"] <- StringValues(etag)
+                            contextResponse.Headers.["ETag"] <- StringValues etag
                         true
                 | ValueNone -> true
             else
@@ -193,8 +193,8 @@ module OwinCompression =
                     Path.Combine ([| settings.ServerPath; p2|])
 
             let extension =
-                let lastDot = unpacked.LastIndexOf('.')
-                if lastDot = -1 then "" else unpacked.Substring(lastDot)
+                let lastDot = unpacked.LastIndexOf '.'
+                if lastDot = -1 then "" else unpacked.Substring lastDot
             let typemap = getExtensionMap settings
 
             match typemap.TryGetValue extension with
@@ -207,17 +207,16 @@ module OwinCompression =
 
             task {
                 try
-                    use strm = File.OpenText unpacked
-                    let! txt = strm.ReadToEndAsync()
-                    let bytes = txt |> System.Text.Encoding.UTF8.GetBytes
+                    let! bytes = File.ReadAllBytesAsync(unpacked, cancellationSrc.Token)
                     match FileInfo(unpacked).Length < settings.MinimumSizeToCompress with
                     | true -> 
                         return false, bytes
                     | false -> 
                         let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
                         contextResponse.Headers.Add("Last-Modified", StringValues(lastmodified))
+                        use ms = new MemoryStream(bytes, false)
                         return 
-                            if checkNoValidETag contextRequest contextResponse cancellationSrc strm.BaseStream then
+                            if checkNoValidETag contextRequest contextResponse cancellationSrc ms then
                                 true, bytes
                             else
                                 false, null

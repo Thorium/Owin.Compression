@@ -160,8 +160,8 @@ module OwinCompression =
                     Path.Combine ([| settings.ServerPath; p2|])
 
             let extension = 
-                let lastDot = unpacked.LastIndexOf('.')
-                if lastDot = -1 then "" else unpacked.Substring(lastDot)
+                let lastDot = unpacked.LastIndexOf '.'
+                if lastDot = -1 then "" else unpacked.Substring lastDot
             let typemap = getExtensionMap settings
 
             match typemap.TryGetValue extension with
@@ -173,17 +173,20 @@ module OwinCompression =
 
             task {
                 try
-                    use strm = File.OpenText unpacked
-                    let! txt = strm.ReadToEndAsync()
-                    let bytes = txt |> System.Text.Encoding.UTF8.GetBytes
-                    match FileInfo(unpacked).Length < settings.MinimumSizeToCompress with
+                    // Most efficient: synchronous read since it's disk I/O bound anyway
+                    // and avoids async overhead for small files
+                    // (and there is no File.ReadAllBytesAsync in .NET Framework 4.8)
+                    let bytes = File.ReadAllBytes unpacked
+            
+                    match bytes.LongLength < settings.MinimumSizeToCompress with
                     | true -> 
                         return false, bytes
                     | false -> 
                         let lastmodified = File.GetLastWriteTimeUtc(unpacked).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'", System.Globalization.CultureInfo.InvariantCulture)
                         contextResponse.Headers.Add("Last-Modified", [|lastmodified|])
+                        use ms = new MemoryStream(bytes, false)
                         return 
-                            if checkNoValidETag contextRequest contextResponse cancellationSrc strm.BaseStream then
+                            if checkNoValidETag contextRequest contextResponse cancellationSrc ms then
                                 true, bytes
                             else
                                 false, null
@@ -192,7 +195,6 @@ module OwinCompression =
                     contextResponse.StatusCode <- 404
                     return false, null
             }
-
         let encodeFile (enc:SupportedEncodings) (settings:CompressionSettings) (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource)= 
             task {
                 let cancellationToken = cancellationSrc.Token
