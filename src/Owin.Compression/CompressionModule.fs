@@ -151,13 +151,17 @@ module OwinCompression =
         let internal getFile (settings:CompressionSettings) (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) =
             let unpacked :string = 
                     let p = contextRequest.Path.ToString()
-                    if not(settings.AllowRootDirectories) && p.Contains ".." then failwith "Invalid path"
-                    if File.Exists p then failwith "Invalid resource"
+                    if not(settings.AllowRootDirectories) && p.Contains ".." then failwith $"Invalid path: {p}"
+                    if File.Exists p then failwith $"Invalid resource: {p}"
                     let p2 =
                         match p.StartsWith "/" with
                         | true -> p.Substring 1
                         | false -> p
-                    Path.Combine ([| settings.ServerPath; p2|])
+                    let unpackedPath = Path.Combine ([| settings.ServerPath; p2|])
+                    let fullPath = Path.GetFullPath unpackedPath |> Path.GetDirectoryName
+                    if not(settings.AllowRootDirectories) then
+                        if not(fullPath.StartsWith(settings.ServerPath, StringComparison.OrdinalIgnoreCase)) then failwith $"Tried to access invalid path: {p}"
+                    unpackedPath
 
             let extension = 
                 let lastDot = unpacked.LastIndexOf '.'
