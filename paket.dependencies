@@ -21,8 +21,14 @@ group standard
 group Build
   source https://nuget.org/api/v2
 
-  nuget SourceLink.Fake
-  nuget FAKE
+  nuget Microsoft.SourceLink.GitHub
+  nuget FAKE.Core.Target
+  nuget FAKE.Core.ReleaseNotes
+  nuget FAKE.DotNet.Cli
+  nuget FAKE.DotNet.AssemblyInfoFile
+  nuget FAKE.Tools.Git
+  nuget FAKE.IO.FileSystem
+  nuget FAKE.DotNet.Testing.XUnit
   nuget FSharp.Formatting
 
   github fsharp/FAKE modules/Octokit/Octokit.fsx
