@@ -1,23 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--<TargetFrameworks>netstandard2.0</TargetFrameworks>-->
-    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
     <AllowCrossTargeting>true</AllowCrossTargeting>
     <DefineConstants>NETSTANDARD</DefineConstants>
     <OutputPath>..\..\bin</OutputPath>
     <AssemblyName>Owin.Compression</AssemblyName>
     <Name>Owin.Compression</Name>
+    <Version>1.0.50</Version>
     <TargetFSharpCoreVersion>8.0.0.0</TargetFSharpCoreVersion>
     <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
 	<PackageTags>owin, compression, gzip, brotli, aspnetcore, webserver, deflate, etag, kestrel, speedup, request, compress, middleware, pipeline</PackageTags>
 	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	<RepositoryType>git</RepositoryType>
 	<Authors>Thorium</Authors>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	<FsDocsNavbarPosition>fixed-right</FsDocsNavbarPosition>
 	<FsDocsWarnOnMissingDocs>false</FsDocsWarnOnMissingDocs>
 	<FsDocsLogoLink>https://github.com/Thorium/Owin.Compression/raw/master/docs/files/img/logo.png</FsDocsLogoLink>
 	<FsDocsTheme>default</FsDocsTheme>
-    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net8.0' " >NETSTANDARD21</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'net10.0' " >NETSTANDARD21</DefineConstants>
     
     <!-- SourceLink settings - Embedded PDBs (recommended for Paket projects) -->
     <!-- Note: Separate .snupkg packages don't work reliably with Paket.Restore.targets -->
@@ -26,6 +28,8 @@
     <DebugSymbols>true</DebugSymbols>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="mscorlib" />
@@ -34,6 +38,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
     <Compile Include="..\Owin.Compression\AssemblyInfo.fs">
       <Link>AssemblyInfo.fs</Link>
     </Compile>
@@ -43,7 +48,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.4" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="9.0.8" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="10.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
