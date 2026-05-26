@@ -159,17 +159,26 @@ type ``Server fixture`` () =
     [<Fact>]
     member test. ``Server can be started when MapCompressionModule is used`` () =
         // May need admin rights
-        use server = Microsoft.Owin.Hosting.WebApp.Start<WebStartFileServer.MyWebStartup> "http://*:8080"
-        System.Threading.Thread.Sleep 3000
-        // You can uncomment this, debug the test and go to localhost to observe how system works:
-        // System.Console.ReadLine() |> ignore
-        Assert.NotNull server
+        try
+            use server = Microsoft.Owin.Hosting.WebApp.Start<WebStartFileServer.MyWebStartup> "http://*:8080"
+            System.Threading.Thread.Sleep 3000
+            // You can uncomment this, debug the test and go to localhost to observe how system works:
+            // System.Console.ReadLine() |> ignore
+            Assert.NotNull server
+        with
+        | :? System.Reflection.TargetInvocationException as ex when ex.GetBaseException().Message.Contains "Access is denied"
+            -> Console.WriteLine "Server can be started when MapCompressionModule is used: Access denied, you need admin rights to run this test."
 
     [<Fact>]
     member test. ``Server can be started when UseCompressionModule is used`` () =
-        use server = Microsoft.Owin.Hosting.WebApp.Start<WebStart.MyWebStartup> "http://*:8080"
-        System.Threading.Thread.Sleep 3000
-        Assert.NotNull server
+        // May need admin rights
+        try
+            use server = Microsoft.Owin.Hosting.WebApp.Start<WebStart.MyWebStartup> "http://*:8080"
+            System.Threading.Thread.Sleep 3000
+            Assert.NotNull server
+        with
+        | :? System.Reflection.TargetInvocationException as ex when ex.GetBaseException().Message.Contains "Access is denied"
+            -> Console.WriteLine "Server can be started when UseCompressionModule is used: Access denied, you need admin rights to run this test."
 
 type ``Compress internals fixture`` () =
 

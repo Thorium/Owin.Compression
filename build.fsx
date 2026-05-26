@@ -1,280 +1,236 @@
-// --------------------------------------------------------------------------------------
-// FAKE build script
-// --------------------------------------------------------------------------------------
-
-#r @"packages/build/FAKE/tools/FakeLib.dll"
-open Fake
-open Fake.Git
-open Fake.AssemblyInfoFile
-open Fake.ReleaseNotesHelper
-open Fake.UserInputHelper
 open System
+open System.Diagnostics
 open System.IO
-// SourceLink is now configured via MSBuild properties in the project file
+open System.Collections.Generic
 
-// --------------------------------------------------------------------------------------
-// START TODO: Provide project-specific details below
-// --------------------------------------------------------------------------------------
-
-// Information about the project are used
-//  - for version and project name in generated AssemblyInfo file
-//  - by the generated NuGet package
-//  - to run tests and to publish documentation on GitHub gh-pages
-//  - for documentation, you also need to edit info in "docs/tools/generate.fsx"
-
-// The name of the project
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
 let project = "Owin.Compression"
-
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Compression (Deflate / GZip) module for Microsoft OWIN Selfhost filesystem pipeline."
-
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = "Compression (Deflate / GZip) module for Microsoft OWIN self host web server. With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to reduce amount of web traffic."
-
-// List of author names (for NuGet package)
+let summary = "Compression (Deflate / GZip / Brotli) and eTag caching module for Microsoft OWIN self-host and ASP.NET Core/Kestrel."
+let description = "Compression (Deflate / GZip / Brotli) module for Microsoft OWIN self-host and ASP.NET Core/Kestrel web servers with built-in eTag caching. With this module you can compress large files (like concatenated *.js or *.css files) to reduce the amount of web traffic."
 let authors = [ "Tuomas Hietanen" ]
+let tags = "OWIN SelfHost GZip Deflate Brotli AspNetCore Kestrel compress pack self host file system pipeline Microsoft"
+let solutionFile = "Owin.Compression.sln"
+let testProject = "tests/Owin.Compression.Tests/Owin.Compression.Tests.fsproj"
+let legacyProject = "src/Owin.Compression/Owin.Compression.fsproj"
+let coreProject = "src/Owin.Compression.Standard/Owin.Compression.Standard.fsproj"
+let paketExecutable = ".paket/paket.exe"
+let paketTemplate = "src/Owin.Compression/paket.template"
+let assemblyInfoFile = "src/Owin.Compression/AssemblyInfo.fs"
+let docsOutput = "docs/output"
+let fsdocsTemp = ".fsdocs"
+let packageOutput = "bin"
+let fsdocsParameters =
+    [
+        "fsdocs-logo-src"; "https://github.com/Thorium/Owin.Compression/raw/master/docs/files/img/logo.png"
+        "fsdocs-navbar-position"; "fixed-right"
+        "fsdocs-repository-link"; "https://github.com/Thorium/Owin.Compression"
+        "fsdocs-list-of-namespaces"; "-"
+    ]
 
-// Tags for your project (for NuGet package)
-let tags = "OWIN SelfHost GZip Deflate compress pack self host file system pipeline Microsoft"
-
-// File system information 
-let solutionFile  = "Owin.Compression.sln"
-
-// Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
-
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted
-let gitOwner = "Thorium" 
-let gitHome = "https://github.com/" + gitOwner
-
-// The name of the project on GitHub
+let gitOwner = "Thorium"
 let gitName = "Owin.Compression"
+let gitHome = "https://github.com/" + gitOwner
+let gitRaw =
+    match Environment.GetEnvironmentVariable("gitRaw") with
+    | null | "" -> "https://raw.github.com/Thorium"
+    | value -> value
 
-// The url for the raw files hosted
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/Thorium"
+let run exe (args: string list) =
+    let psi = ProcessStartInfo()
+    psi.FileName <- exe
+    psi.WorkingDirectory <- Directory.GetCurrentDirectory()
+    psi.UseShellExecute <- false
+    for arg in args do
+        psi.ArgumentList.Add(arg)
 
-// --------------------------------------------------------------------------------------
-// END TODO: The rest of the file includes standard build steps
-// --------------------------------------------------------------------------------------
+    use proc = Process.Start(psi)
+    proc.WaitForExit()
+    if proc.ExitCode <> 0 then
+        let renderedArgs = String.concat " " args
+        failwithf "Command failed: %s %s" exe renderedArgs
 
-// Read additional information from the release notes document
-let release = LoadReleaseNotes "RELEASE_NOTES.md"
+let cleanDir path =
+    if Directory.Exists(path) then
+        Directory.Delete(path, true)
 
-// Helper active pattern for project types
-let (|Fsproj|Csproj|Vbproj|Shproj|) (projFileName:string) =
-    match projFileName with
-    | f when f.EndsWith("fsproj") -> Fsproj
-    | f when f.EndsWith("csproj") -> Csproj
-    | f when f.EndsWith("vbproj") -> Vbproj
-    | f when f.EndsWith("shproj") -> Shproj
-    | _                           -> failwith (sprintf "Project file %s not supported. Unknown project type." projFileName)
+let cleanDirs paths =
+    for path in paths do
+        cleanDir path
 
-// Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" (fun _ ->
-    let getAssemblyInfoAttributes projectName =
-        [ Attribute.Title (projectName)
-          Attribute.Product project
-          Attribute.Description summary
-          Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion ]
+let getPackageFiles () =
+    if Directory.Exists(packageOutput) then
+        Directory.GetFiles(packageOutput, "*.nupkg", SearchOption.TopDirectoryOnly)
+        |> Array.filter (fun path -> not (path.EndsWith(".snupkg", StringComparison.OrdinalIgnoreCase)))
+        |> Array.sort
+        |> Array.toList
+    else
+        []
 
-    let getProjectDetails projectPath =
-        let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
-        ( projectPath,
-          projectName,
-          System.IO.Path.GetDirectoryName(projectPath),
-          (getAssemblyInfoAttributes projectName)
-        )
+let runPaket args =
+    run paketExecutable args
 
-    !! "src/**/*.??proj"
-    |> Seq.map getProjectDetails
-    |> Seq.iter (fun (projFileName, projectName, folderName, attributes) ->
-        match projFileName with
-        | Fsproj -> CreateFSharpAssemblyInfo (folderName </> "AssemblyInfo.fs") attributes
-        | Csproj -> CreateCSharpAssemblyInfo ((folderName </> "Properties") </> "AssemblyInfo.cs") attributes
-        | Vbproj -> CreateVisualBasicAssemblyInfo ((folderName </> "My Project") </> "AssemblyInfo.vb") attributes
-        | Shproj -> ()
-        )
+let parseReleaseNotes () =
+    let lines = File.ReadAllLines("RELEASE_NOTES.md") |> Array.toList
+    let firstHeader =
+        lines
+        |> List.tryFind (fun line -> line.StartsWith("### "))
+        |> Option.defaultWith (fun () -> failwith "Could not find a version header in RELEASE_NOTES.md")
+
+    let version =
+        firstHeader.Substring(4).Split([|" - "|], StringSplitOptions.None).[0].Trim()
+
+    let notes =
+        lines
+        |> List.skipWhile (fun line -> line <> firstHeader)
+        |> List.skip 1
+        |> List.takeWhile (fun line -> not (line.StartsWith("### ")))
+        |> List.filter (fun line -> not (String.IsNullOrWhiteSpace line))
+
+    version, notes
+
+let releaseVersion, releaseNotes = parseReleaseNotes ()
+
+let writeAssemblyInfo () =
+    let content =
+        String.concat Environment.NewLine [
+            "// Auto-Generated by build.fsx; do not edit"
+            "namespace System"
+            "open System.Reflection"
+            ""
+            sprintf "[<assembly: AssemblyTitleAttribute(\"%s\")>]" project
+            sprintf "[<assembly: AssemblyProductAttribute(\"%s\")>]" project
+            sprintf "[<assembly: AssemblyDescriptionAttribute(\"%s\")>]" summary
+            sprintf "[<assembly: AssemblyMetadataAttribute(\"Authors\", \"%s\")>]" (String.concat ", " authors)
+            sprintf "[<assembly: AssemblyMetadataAttribute(\"Description\", \"%s\")>]" description
+            sprintf "[<assembly: AssemblyMetadataAttribute(\"Tags\", \"%s\")>]" tags
+            sprintf "[<assembly: AssemblyMetadataAttribute(\"RepositoryUrl\", \"%s/%s\")>]" gitHome gitName
+            sprintf "[<assembly: AssemblyMetadataAttribute(\"RepositoryRaw\", \"%s\")>]" gitRaw
+            sprintf "[<assembly: AssemblyVersionAttribute(\"%s\")>]" releaseVersion
+            sprintf "[<assembly: AssemblyFileVersionAttribute(\"%s\")>]" releaseVersion
+            "do ()"
+            ""
+            "module internal AssemblyVersionInformation ="
+            sprintf "    let [<Literal>] AssemblyTitle = \"%s\"" project
+            sprintf "    let [<Literal>] AssemblyProduct = \"%s\"" project
+            sprintf "    let [<Literal>] AssemblyDescription = \"%s\"" summary
+            sprintf "    let [<Literal>] AssemblyVersion = \"%s\"" releaseVersion
+            sprintf "    let [<Literal>] AssemblyFileVersion = \"%s\"" releaseVersion
+        ]
+
+    File.WriteAllText(assemblyInfoFile, content + Environment.NewLine)
+
+let targetActions = Dictionary<string, unit -> unit>(StringComparer.OrdinalIgnoreCase)
+let targetDependencies = Dictionary<string, string list>(StringComparer.OrdinalIgnoreCase)
+let completedTargets = HashSet<string>(StringComparer.OrdinalIgnoreCase)
+
+let addTarget name dependencies action =
+    targetActions[name] <- action
+    targetDependencies[name] <- dependencies
+
+let rec runTarget name =
+    if not (targetActions.ContainsKey name) then
+        let available = targetActions.Keys |> Seq.sort |> String.concat ", "
+        failwithf "Unknown target '%s'. Available targets: %s" name available
+
+    if completedTargets.Add name then
+        for dependency in targetDependencies[name] do
+            runTarget dependency
+
+        printfn "Running target %s" name
+        targetActions[name]()
+
+addTarget "Clean" [] (fun () ->
+    cleanDirs [ "bin"; "temp"; "obj" ]
 )
 
-
-// --------------------------------------------------------------------------------------
-// Clean build results
-
-Target "Clean" (fun _ ->
-    CleanDirs ["bin"; "temp"; "obj"]
+addTarget "Restore" [] (fun () ->
+    run "dotnet" [ "tool"; "restore" ]
+    runPaket [ "restore" ]
+    run "dotnet" [ "restore"; solutionFile ]
+    run "dotnet" [ "restore"; legacyProject ]
+    run "dotnet" [ "restore"; coreProject ]
 )
 
-Target "CleanDocs" (fun _ ->
-    CleanDirs ["docs/output"]
+addTarget "AssemblyInfo" [ "Restore" ] (fun () ->
+    writeAssemblyInfo ()
 )
 
-// --------------------------------------------------------------------------------------
-// Build library & test project
-
-Target "Build" (fun _ ->
-
-    DotNetCli.Restore(fun p -> 
-        { p with 
-            Project = "Owin.Compression.sln"
-            NoCache = true})
-
-    DotNetCli.Build(fun p -> 
-        { p with 
-            Project = "Owin.Compression.sln"
-            Configuration = "Release"})
+addTarget "Build" [ "AssemblyInfo" ] (fun () ->
+    run "dotnet" [ "build"; solutionFile; "-c"; "Release"; "--no-restore" ]
 )
 
-Target "BuildCore" (fun _ ->
-    // Build .NET Core solution
-    if not isMono then // Mono dotnet build is not tested yet...
-        DotNetCli.Restore(fun p -> 
-            { p with 
-                Project = "src\Owin.Compression.Standard\Owin.Compression.Standard.fsproj"
-                NoCache = true})
-
-        DotNetCli.Build(fun p -> 
-            { p with 
-                Project = "src\Owin.Compression.Standard\Owin.Compression.Standard.fsproj"
-                Configuration = "Release"})
-
-)
-// --------------------------------------------------------------------------------------
-// Run the unit tests using test runner
-
-Target "RunTests" (fun _ ->
-    !! testAssemblies
-    |> xUnit (fun p -> p)
+addTarget "BuildLegacy" [ "AssemblyInfo" ] (fun () ->
+    run "dotnet" [ "build"; legacyProject; "-c"; "Release" ]
 )
 
-// SourceLink is now automatically handled by Microsoft.SourceLink.GitHub package
-// configured in the project file with MSBuild properties
-
-// --------------------------------------------------------------------------------------
-// Build a NuGet package
-
-Target "NuGet" (fun _ ->
-    // Pack with embedded PDBs (SourceLink enabled, works with Paket)
-    Paket.Pack(fun p ->
-        { p with
-            OutputPath = "bin"
-            Version = release.NugetVersion
-            ReleaseNotes = toLines release.Notes})
+addTarget "BuildCore" [ "AssemblyInfo" ] (fun () ->
+    run "dotnet" [ "build"; coreProject; "-c"; "Release"; "--no-restore" ]
 )
 
-Target "PublishNuget" (fun _ ->
-    Paket.Push(fun p ->
-        { p with
-            WorkingDir = "bin" })
+addTarget "RunTests" [ "BuildCore" ] (fun () ->
+    run "dotnet" [ "test"; testProject; "-c"; "Release"; "--no-build"; "--no-restore" ]
 )
 
-
-// --------------------------------------------------------------------------------------
-// Generate the documentation
-let propsOverride = 
-    " fsdocs-logo-src https://github.com/Thorium/Owin.Compression/raw/master/docs/files/img/logo.png" +
-    " fsdocs-navbar-position fixed-right " +
-    " fsdocs-repository-link https://github.com/Thorium/Owin.Compression" +
-    " fsdocs-list-of-namespaces -"
- 
-
-Target "GenerateDocs" (fun _ ->
-    CleanDirs [".fsdocs"]
-    DotNetCli.RunCommand id ("fsdocs build --output docs/output --input docs/content --noapidocs --clean --parameters " + propsOverride)
+addTarget "CleanDocs" [] (fun () ->
+    cleanDirs [ docsOutput ]
 )
 
-Target "WatchLocalDocs" (fun _ ->
-    CleanDirs [".fsdocs"]
-    DotNetCli.RunCommand id ("fsdocs watch --output docs/output --input docs/content --noapidocs --clean --parameters fsdocs-package-project-url http://localhost:8901/  " + propsOverride) |> ignore
-
+addTarget "GenerateDocs" [ "RunTests" ] (fun () ->
+    cleanDirs [ fsdocsTemp ]
+    run "dotnet" ([ "fsdocs"; "build"; "--output"; docsOutput; "--input"; "docs/content"; "--noapidocs"; "--clean"; "--parameters" ] @ fsdocsParameters)
 )
 
-// --------------------------------------------------------------------------------------
-// Release Scripts
-
-Target "ReleaseDocs" (fun _ ->
-    let tempDocsDir = "temp/gh-pages"
-    CleanDir tempDocsDir
-    Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
-
-    CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
-    StageAll tempDocsDir
-    Git.Commit.Commit tempDocsDir (sprintf "Update generated documentation for version %s" release.NugetVersion)
-    Branches.push tempDocsDir
+addTarget "WatchLocalDocs" [ "BuildCore" ] (fun () ->
+    cleanDirs [ fsdocsTemp ]
+    run "dotnet" ([ "fsdocs"; "watch"; "--output"; docsOutput; "--input"; "docs/content"; "--noapidocs"; "--clean"; "--parameters"; "fsdocs-package-project-url"; "http://localhost:8901/" ] @ fsdocsParameters)
 )
 
-#load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
-open Octokit
+addTarget "All" [ "GenerateDocs" ] (fun () -> ())
 
-Target "Release" (fun _ ->
-    let user =
-        match getBuildParam "github-user" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> getUserInput "Username: "
-    let pw =
-        match getBuildParam "github-pw" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> getUserPassword "Password: "
-    let remote =
-        Git.CommandHelper.getGitResult "" "remote -v"
-        |> Seq.filter (fun (s: string) -> s.EndsWith("(push)"))
-        |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
-        |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
-
-    StageAll ""
-    Git.Commit.Commit "" (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.pushBranch "" remote (Information.getBranchName "")
-
-    Branches.tag "" release.NugetVersion
-    Branches.pushTag "" remote release.NugetVersion
-    
-    // release on github
-    createClient user pw
-    |> createDraft gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
-    // TODO: |> uploadFile "PATH_TO_FILE"
-    |> releaseDraft
-    |> Async.RunSynchronously
+addTarget "NuGet" [] (fun () ->
+    cleanDirs [ "bin"; "temp"; "obj" ]
+    run "dotnet" [ "tool"; "restore" ]
+    runPaket [ "restore" ]
+    run "dotnet" [ "restore"; solutionFile ]
+    run "dotnet" [ "restore"; legacyProject ]
+    run "dotnet" [ "restore"; coreProject ]
+    writeAssemblyInfo ()
+    run "dotnet" [ "build"; legacyProject; "-c"; "Release" ]
+    run "dotnet" [ "build"; coreProject; "-c"; "Release"; "--no-restore" ]
+    runPaket [ "pack"; packageOutput; "--template"; paketTemplate; "--version"; releaseVersion; "--release-notes"; String.concat Environment.NewLine releaseNotes ]
 )
 
-Target "BuildPackage" DoNothing
+addTarget "BuildPackage" [ "NuGet" ] (fun () -> ())
 
-// --------------------------------------------------------------------------------------
-// Run all targets by default. Invoke 'build <Target>' to override
+addTarget "PublishNuget" [ "BuildPackage" ] (fun () ->
+    match getPackageFiles () with
+    | [] -> failwith "No NuGet packages were found in bin. Run BuildPackage first."
+    | packageFiles ->
+        for packageFile in packageFiles do
+            runPaket [ "push"; packageFile ]
+)
 
-Target "All" DoNothing
+addTarget "ReleaseDocs" [ "GenerateDocs" ] (fun () ->
+    printfn "Documentation generated in %s" docsOutput
+)
 
-"Clean"
-  ==> "AssemblyInfo"
-  ==> "Build"
-  ==> "BuildCore"
-  ==> "RunTests"
-  ==> "GenerateDocs"
-  ==> "All"
-  =?> ("ReleaseDocs",isLocalBuild)
+addTarget "Release" [ "BuildPackage" ] (fun () ->
+    let packageFiles = getPackageFiles ()
+    if List.isEmpty packageFiles then
+        failwith "No NuGet packages were produced."
 
-"All"
-  ==> "NuGet"
-  ==> "BuildPackage"
+    printfn "Release artifacts ready:"
+    for packageFile in packageFiles do
+        printfn " - %s" packageFile
+)
 
-"CleanDocs"
-  //==> "GenerateHelp"
-  //==> "GenerateReferenceDocs"
-  ==> "GenerateDocs"
-    
-"ReleaseDocs"
-  ==> "Release"
+let commandLineArgs = fsi.CommandLineArgs |> Array.skip 1 |> Array.toList
 
-"BuildPackage"
-  ==> "PublishNuget"
-  ==> "Release"
+let targetName =
+    match commandLineArgs with
+    | [] -> "All"
+    | [ single ] when not (single.StartsWith("-")) -> single
+    | "--target" :: value :: _ -> value
+    | "target" :: value :: _ -> value
+    | _ -> failwith "Usage: dotnet fsi build.fsx -- [--target] <TargetName>"
 
-// Use this to test and run document generation in localhost:
-// build WatchLocalDocs
-"BuildCore" 
-  ==> "WatchLocalDocs"
-
-RunTargetOrDefault "All"
+runTarget targetName

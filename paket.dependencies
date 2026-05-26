@@ -28,7 +28,6 @@ group Build
   nuget FAKE.DotNet.AssemblyInfoFile
   nuget FAKE.Tools.Git
   nuget FAKE.IO.FileSystem
-  nuget FAKE.DotNet.Testing.XUnit
   nuget FSharp.Formatting
 
   github fsharp/FAKE modules/Octokit/Octokit.fsx

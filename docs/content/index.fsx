@@ -105,7 +105,7 @@ and compressing only the ".json"-responses (and files) on-the-fly, with only gzi
 					serverPath: "",
 					allowUnknonwnFiletypes: false,
 					allowRootDirectories: false,
-					cacheExpireTime: Microsoft.FSharp.Core.FSharpOption<DateTimeOffset>.None,
+					cacheExpireTime: Microsoft.FSharp.Core.ValueOption<DateTimeOffset>.None,
 					allowedExtensionAndMimeTypes:
 						new[] { Tuple.Create(".json", "application/json") },
 					minimumSizeToCompress: 1000,
@@ -136,12 +136,12 @@ and compressing all the responses (and files) on-the-fly. This example is in F-S
 
 *)
 
-
+#I "../../bin/net48"
 #r "Owin.dll"
 #r "Microsoft.Owin.dll"
-#r "Microsoft.Owin.FileSystems.dll"
-#r "Microsoft.Owin.Hosting.dll"
-#r "Microsoft.Owin.StaticFiles.dll"
+//#r "Microsoft.Owin.FileSystems.dll"
+//#r "Microsoft.Owin.Hosting.dll"
+//#r "Microsoft.Owin.StaticFiles.dll"
 #r "System.Configuration.dll"
 #r "Owin.Compression.dll"
 
@@ -150,26 +150,36 @@ open System
 
 module Examples =
 
-type MyStartup() =
-    member __.Configuration(app:Owin.IAppBuilder) =
-        let app1 = app.UseCompressionModule()
-        app1.UseFileServer "/." |> ignore
-        ()
+    type MyStartup() =
+        member __.Configuration(app:Owin.IAppBuilder) =
+            let app1 = app.UseCompressionModule()
+            app1.UseFileServer "/." |> ignore
+            ()
 
-let server = Microsoft.Owin.Hosting.WebApp.Start<MyStartup> "http://*:6000"
-Console.WriteLine "Press Enter to stop & quit."
-Console.ReadLine() |> ignore
-server.Dispose()
+    let server = Microsoft.Owin.Hosting.WebApp.Start<MyStartup> "http://*:6000"
+    Console.WriteLine "Press Enter to stop & quit."
+    Console.ReadLine() |> ignore
+    server.Dispose()
 
 (**
 
 Example #4
 ----------
 
-Running on ASP.NET Core web API on .NET 6.0. You can use C# but this example is in F#
+Running on ASP.NET Core web API on .NET 8.0/10.0. You can use C# but this example is in F#
 just because of the shorter syntax. The full project is available in tests-folder of this project:
 
-*)
+You should have AspNetCore project:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk.Web">
+```
+
+And then the logic:
+
+
+```fsharp
+
 
 open System
 open Microsoft.AspNetCore.Builder
@@ -188,7 +198,7 @@ module Program =
 
         let compressionSetting =
             {OwinCompression.DefaultCompressionSettings with
-                CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.)
+                CacheExpireTime = ValueSome (DateTimeOffset.Now.AddDays 7.)
                 AllowUnknonwnFiletypes = true
                 StreamingDisabled = true
             }
@@ -196,7 +206,7 @@ module Program =
         app.MapControllers() |> ignore
         app.Run()
         0
-(**
+```
 
 https://github.com/Thorium/Owin.Compression/tree/master/tests/Aspnet.Core.WebAPI.Test
 

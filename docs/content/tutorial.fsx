@@ -2,11 +2,11 @@
 // This block of code is omitted in the generated HTML documentation. Use 
 // it to define helpers that you do not want to show in the documentation.
 #I "../../bin"
+#I "../../bin/net48"
 #I @"./../../packages/Owin/lib/net40"
-#I @"./../../packages/Microsoft.Owin/lib/net451" 
-#I @"./../../packages/Microsoft.Owin.Hosting/lib/net451"
-#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net451"
-#I @"./../../bin/Owin.Compression"
+#I @"./../../packages/Microsoft.Owin/lib/net45" 
+#I @"./../../packages/Microsoft.Owin.Hosting/lib/net45"
+#I @"./../../packages/Microsoft.Owin.Host.HttpListener/lib/net45"
 
 (**
 # Using this library (C-Sharp) #
@@ -66,6 +66,7 @@ Observe that the file is transfered as compressed but the browser will automatic
 #r "Microsoft.Owin.Hosting.dll"
 #r "System.Configuration.dll"
 #r "Owin.Compression.dll"
+#r "nuget: System.Configuration.ConfigurationManager"
 
 open Owin
 open System
@@ -77,7 +78,7 @@ type MyWebStartup() =
         let compressionSetting = 
             {OwinCompression.DefaultCompressionSettings with 
                 ServerPath = serverPath; 
-                CacheExpireTime = Some (DateTimeOffset.Now.AddDays 7.) }
+                CacheExpireTime = ValueSome (DateTimeOffset.Now.AddDays 7.) }
         app.MapCompressionModule("/zipped", compressionSetting) |> ignore 
         ()
 

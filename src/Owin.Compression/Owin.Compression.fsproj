@@ -25,7 +25,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\..\bin\net472\Owin.Compression.xml</DocumentationFile>
+    <DocumentationFile>..\..\bin\net48\Owin.Compression.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>

@@ -1,3 +1,6 @@
+### 1.0.51 - May 26 2026
+* Add and verify .NET 10.0 package target
+
 ### 1.0.50 - October 27 2025
 * Fix to not expect all files are UTF8 encoded
 

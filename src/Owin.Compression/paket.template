@@ -19,27 +19,33 @@ tags
     OWIN SelfHost eTag AspNetCore GZip Deflate compress pack self host file system pipeline Microsoft
 	ASPNET ASP.NET Core Web API Kestrel caching
 summary
-    Compression (Deflate / GZip) and eTag caching module for Microsoft OWIN Selfhost filesystem pipeline.
-	It supports also AspNetCore, for example running WebAPI on .NET6.0+ and Kestrel.
+    Compression (Deflate / GZip / Brotli) and eTag caching module for Microsoft OWIN self-host and ASP.NET Core/Kestrel.
+	It supports legacy Microsoft.Owin/self-host and modern ASP.NET Core on .NET Standard 2.1, .NET 8.0, and .NET 10.0.
 description
-    Compression (Deflate / GZip) module for Microsoft OWIN self-host and AspNetCore/Kestrel web servers. Built-in eTag caching. With this module you can compress, deflate / gzip large files (like concatenated *.js or *.css files) to the reduce amount of web traffic.
+    Compression (Deflate / GZip / Brotli) module for Microsoft OWIN self-host and ASP.NET Core/Kestrel web servers with built-in eTag caching. With this module you can compress large files (like concatenated *.js or *.css files) to reduce the amount of web traffic.
 dependencies
   framework: net48
     Owin >= 1.0.0
     FSharp.Core >= LOCKEDVERSION
     Microsoft.Owin ~> LOCKEDVERSION
-  framework: netstandard20
-    FSharp.Core >= LOCKEDVERSION
-    Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
-    Microsoft.AspNetCore.Http.Features >= LOCKEDVERSION-standard
-    Microsoft.Extensions.Primitives >= LOCKEDVERSION-standard
-    System.Text.Encodings.Web >= LOCKEDVERSION-standard
   framework: netstandard21
-    FSharp.Core >= LOCKEDVERSION
-    Microsoft.AspNetCore.Http.Abstractions >= LOCKEDVERSION-standard
-    Microsoft.AspNetCore.Http.Features >= LOCKEDVERSION-standard
-    Microsoft.Extensions.Primitives >= LOCKEDVERSION-standard
-    System.Text.Encodings.Web >= LOCKEDVERSION-standard
+    FSharp.Core >= 8.0.301
+    Microsoft.AspNetCore.Http.Abstractions >= 2.3.0
+    Microsoft.AspNetCore.Http.Features >= 5.0.17
+    Microsoft.Extensions.Primitives >= 9.0.4
+    System.Text.Encodings.Web >= 10.0.0
+  framework: net8.0
+    FSharp.Core >= 8.0.301
+    Microsoft.AspNetCore.Http.Abstractions >= 2.3.0
+    Microsoft.AspNetCore.Http.Features >= 5.0.17
+    Microsoft.Extensions.Primitives >= 9.0.4
+    System.Text.Encodings.Web >= 10.0.0
+  framework: net10.0
+    FSharp.Core >= 8.0.301
+    Microsoft.AspNetCore.Http.Abstractions >= 2.3.0
+    Microsoft.AspNetCore.Http.Features >= 5.0.17
+    Microsoft.Extensions.Primitives >= 9.0.4
+    System.Text.Encodings.Web >= 10.0.0
 files
 	../../bin/**/Owin.Compression.dll
 	../../bin/**/Owin.Compression.xml

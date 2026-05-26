@@ -7,7 +7,9 @@
     <OutputPath>..\..\bin</OutputPath>
     <AssemblyName>Owin.Compression</AssemblyName>
     <Name>Owin.Compression</Name>
-    <Version>1.0.50</Version>
+    <Version>1.0.51</Version>
+    <Description>Compression (Deflate / GZip / Brotli) module for Microsoft OWIN self-host and ASP.NET Core/Kestrel web servers with built-in eTag caching.</Description>
+    <PackageDescription>Compression (Deflate / GZip / Brotli) module for Microsoft OWIN self-host and ASP.NET Core/Kestrel web servers with built-in eTag caching.</PackageDescription>
     <TargetFSharpCoreVersion>8.0.0.0</TargetFSharpCoreVersion>
     <RepositoryUrl>https://github.com/Thorium/Owin.Compression</RepositoryUrl>
 	<PackageTags>owin, compression, gzip, brotli, aspnetcore, webserver, deflate, etag, kestrel, speedup, request, compress, middleware, pipeline</PackageTags>
