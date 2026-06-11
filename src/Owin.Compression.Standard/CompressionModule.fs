@@ -290,7 +290,8 @@ module OwinCompression =
                             false // Content length info is not so important...
 
                 if doStream then
-                    return! zipped.CopyToAsync(contextResponse.Body, defaultBufferSize, cancellationToken)
+                    use tmp = new MemoryStream(op)
+                    return! tmp.CopyToAsync(contextResponse.Body, defaultBufferSize, cancellationToken)
                 else
 #if NETSTANDARD21
                     return! contextResponse.Body.WriteAsync(op.AsMemory(0, op.Length), cancellationToken)
@@ -499,13 +500,13 @@ module OwinCompression =
                     | File ->
                         task {
                             let! comp, r = getFile settings context.Request context.Response cancellationSrc
-                            if comp then
+                            if comp || not (isNull r) then
 #if NETSTANDARD21
                                 return! context.Response.Body.WriteAsync(r.AsMemory(0, r.Length), cancellationToken)
 #else
                                 return! context.Response.Body.WriteAsync(r, 0, r.Length, cancellationToken)
 #endif
-                            else return! Task.Delay 50 
+                            else return! Task.Delay 50
                         } :> Task
                     | ContextResponseBody(next) ->
                         next.Invoke()
