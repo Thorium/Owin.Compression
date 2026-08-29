@@ -34,19 +34,19 @@ module MockOwin =
               member this.ETag with get () = etag and set v = etag <- v
               member this.Environment = raise (System.NotImplementedException())
               member this.Expires with get () = Nullable(DateTime.Today.AddMonths 1) and set v = ()
-              member this.Get(key) = raise (System.NotImplementedException())
+              member this.Get key = raise (System.NotImplementedException())
               member this.Headers = headers
               member this.OnSendingHeaders(callback, state) = raise (System.NotImplementedException())
               member this.Protocol with get () = "http" and set v = ()
               member this.ReasonPhrase with get () = "" and set v = ()
-              member this.Redirect(location) = raise (System.NotImplementedException())
+              member this.Redirect location = raise (System.NotImplementedException())
               member this.Set(key, value) = raise (System.NotImplementedException())
               member this.StatusCode with get () = status and set v = status <- v
               member this.Write(text: string): unit = ()
               member this.Write(data: byte array): unit = ()
               member this.Write(data: byte array, offset: int, count: int): unit = ()
-              member this.WriteAsync(text: string): Task = task { return () } :> Task
-              member this.WriteAsync(text: string, token: Threading.CancellationToken): Task = task { return () } :> Task 
+              member this.WriteAsync(text: string): Task = Task.FromResult(()) :> Task
+              member this.WriteAsync(text: string, token: Threading.CancellationToken): Task = Task.FromResult(()) :> Task 
               member this.WriteAsync(data: byte array): Task = body.WriteAsync(data, 0, data.Length)
               member this.WriteAsync(data: byte array, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length)
               member this.WriteAsync(data: byte array, offset: int, count: int, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length)
@@ -74,7 +74,7 @@ module MockOwin =
               member this.Context = raise (System.NotImplementedException())
               member this.Cookies = raise (System.NotImplementedException())
               member this.Environment = raise (System.NotImplementedException())
-              member this.Get(key) = raise (System.NotImplementedException())
+              member this.Get key = raise (System.NotImplementedException())
               member this.Headers = headers
               member this.Host
                   with get () = raise (System.NotImplementedException())
@@ -223,7 +223,7 @@ type ``Compress internals fixture`` () =
         task {
             let mockResponse = MockOwin.generateResponse(Some "hello")
             let mockRequest = Owin.OwinRequest()
-            let taskReturn = Func<Task>(fun _ -> task { return () } :> Task)
+            let taskReturn = Func<Task>(fun _ -> Task.FromResult(()) :> Task)
             let! res = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
             Assert.NotNull mockResponse.Body
             Assert.Equal(200,mockResponse.StatusCode)
@@ -240,7 +240,7 @@ type ``Compress internals fixture`` () =
             let mockResponse = MockOwin.generateResponse (Some longstring)
             
             let mockRequest = MockOwin.generateRequest()
-            let taskReturn = Func<Task>(fun _ -> task { return () } :> Task)
+            let taskReturn = Func<Task>(fun _ -> Task.FromResult(()) :> Task)
             let! isOk = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
             Assert.NotNull mockResponse.Body
             Assert.Equal(200,mockResponse.StatusCode)

@@ -78,7 +78,7 @@ module OwinCompression =
 
     /// Default settings with custom path and cache-time. C#-helper method.
     let DefaultCompressionSettingsWithPathAndCache(path,cachetime) = 
-        {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = ValueSome (cachetime) }
+        {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = ValueSome cachetime }
 
     let private defaultBufferSize = 81920
 
@@ -122,7 +122,7 @@ module OwinCompression =
         let checkNoValidETag (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) (itemToCheck:Stream) =
 
             if contextRequest.Headers.ContainsKey("If-None-Match") && (not(isNull contextRequest.Headers.["If-None-Match"])) &&
-               (not(contextRequest.Headers.ContainsKey("Pragma")) || contextRequest.Headers.["Pragma"] <> "no-cache") then
+               (not(contextRequest.Headers.ContainsKey "Pragma") || contextRequest.Headers.["Pragma"] <> "no-cache") then
                let noneMatch = contextRequest.Headers.["If-None-Match"]
                if noneMatch = contextResponse.ETag then
                     if not (isNull cancellationSrc) then cancellationSrc.Cancel()
@@ -151,15 +151,13 @@ module OwinCompression =
         let internal getFile (settings:CompressionSettings) (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) =
             let unpacked :string = 
                     let p = contextRequest.Path.ToString()
-                    if not(settings.AllowRootDirectories) && p.Contains ".." then failwith $"Invalid path: {p}"
+                    if not settings.AllowRootDirectories && p.Contains ".." then failwith $"Invalid path: {p}"
                     if File.Exists p then failwith $"Invalid resource: {p}"
                     let p2 =
-                        match p.StartsWith "/" with
-                        | true -> p.Substring 1
-                        | false -> p
+                        if p.StartsWith "/" then p.Substring 1 else p
                     let unpackedPath = Path.Combine ([| settings.ServerPath; p2|])
                     let fullPath = Path.GetFullPath unpackedPath |> Path.GetDirectoryName
-                    if not(settings.AllowRootDirectories) then
+                    if not settings.AllowRootDirectories then
                         if not(fullPath.StartsWith(settings.ServerPath, StringComparison.OrdinalIgnoreCase)) then failwith $"Tried to access invalid path: {p}"
                     unpackedPath
 
@@ -237,7 +235,7 @@ module OwinCompression =
                         try
                             let canStream = String.Equals(contextRequest.Protocol, "HTTP/1.1", StringComparison.Ordinal)
                             if canStream && (int64 defaultBufferSize) < op.LongLength then
-                                if not(contextResponse.Headers.ContainsKey("Transfer-Encoding")) 
+                                if not(contextResponse.Headers.ContainsKey "Transfer-Encoding") 
                                     || contextResponse.Headers.["Transfer-Encoding"] <> "chunked" then
                                     contextResponse.Headers.["Transfer-Encoding"] <- "chunked"
                                 true
@@ -260,11 +258,11 @@ module OwinCompression =
             match path with
             | null -> true
             | x -> 
-                let lastDot = x.LastIndexOf('.')
+                let lastDot = x.LastIndexOf '.'
                 if lastDot = -1 then false
                 else
                     let typemap = getExtensionMap settings
-                    typemap.ContainsKey(x.Substring(lastDot))
+                    typemap.ContainsKey(x.Substring lastDot)
 
         let encodeStream (enc:SupportedEncodings) (settings:CompressionSettings) (contextRequest:IOwinRequest) (contextResponse:IOwinResponse) (cancellationSrc:Threading.CancellationTokenSource) (next:Func<Task>)  =
 
@@ -289,7 +287,7 @@ module OwinCompression =
                     let contentType = 
                         // We are not interested of charset, etc - use StringComparison to avoid ToLower allocation
                         let rawContentType = 
-                            match contextResponse.ContentType.IndexOf(';') with
+                            match contextResponse.ContentType.IndexOf ';' with
                             | -1 -> contextResponse.ContentType
                             | idx -> contextResponse.ContentType.Substring(0, idx)
                         rawContentType
@@ -309,7 +307,7 @@ module OwinCompression =
                 task {
 
                     let noCompression =
-                        (not contextResponse.Body.CanSeek) || (not contextResponse.Body.CanRead) 
+                        (not (contextResponse.Body.CanSeek && contextResponse.Body.CanRead)) 
                             || (originalLengthNotEnough && pipedLengthNotEnough)
                             || (contextResponse.Headers.ContainsKey("Content-Encoding") &&
                                 not(String.IsNullOrWhiteSpace(contextResponse.Headers.["Content-Encoding"])))
@@ -339,17 +337,17 @@ module OwinCompression =
                         if contextResponse.Body.CanSeek then
                             contextResponse.Body.Seek(0L, SeekOrigin.Begin) |> ignore
 
-                        do! copyBodyToCompressor(zipped)
+                        do! copyBodyToCompressor zipped
 
                         zipped.Close()
                         output.Close()
                         let op = output.ToArray()
 
-                        if not(cancellationToken.IsCancellationRequested) then
+                        if not cancellationToken.IsCancellationRequested then
                             try
                                 let canStream = String.Equals(contextRequest.Protocol, "HTTP/1.1", StringComparison.Ordinal) && not settings.StreamingDisabled
                                 if canStream && (int64 defaultBufferSize) < op.LongLength then
-                                    if not(contextResponse.Headers.ContainsKey("Transfer-Encoding")) 
+                                    if not(contextResponse.Headers.ContainsKey "Transfer-Encoding") 
                                         || contextResponse.Headers.["Transfer-Encoding"] <> "chunked" then
                                         contextResponse.Headers.["Transfer-Encoding"] <- "chunked"
                                 else
@@ -429,12 +427,12 @@ module OwinCompression =
             let inline encodeOutput (enc:SupportedEncodings) = 
 
                 match settings.CacheExpireTime with
-                | ValueSome d when not (context.Response.Headers.IsReadOnly) -> context.Response.Expires <- Nullable(d)
+                | ValueSome d when not context.Response.Headers.IsReadOnly -> context.Response.Expires <- Nullable(d)
                 | _ -> ()
 
                 match mode with
                 | File -> encodeFile enc settings context.Request context.Response cancellationSrc
-                | ContextResponseBody(next) ->
+                | ContextResponseBody next ->
 
 
                     if cancellationToken.IsCancellationRequested then 
@@ -456,10 +454,10 @@ module OwinCompression =
                                 return! context.Response.WriteAsync(r, cancellationToken)
                             else return! Task.Delay 50
                         } :> Task
-                    | ContextResponseBody(next) ->
+                    | ContextResponseBody next ->
                         next.Invoke()
                 if String.IsNullOrEmpty encodings then writeAsyncContext()
-                elif encodings.Contains "deflate" && not(settings.DeflateDisabled) then encodeOutput Deflate
+                elif encodings.Contains "deflate" && not settings.DeflateDisabled then encodeOutput Deflate
                 elif encodings.Contains "gzip" then encodeOutput GZip
                 else writeAsyncContext()
 
