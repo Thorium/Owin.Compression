@@ -80,6 +80,7 @@ module OwinCompression =
     let DefaultCompressionSettingsWithPathAndCache(path,cachetime) = 
         {DefaultCompressionSettings with ServerPath = path; CacheExpireTime = ValueSome cachetime }
 
+    [<Literal>]
     let private defaultBufferSize = 81920
 
     /// Cached extension to MIME type mapping for performance
@@ -157,8 +158,8 @@ module OwinCompression =
                         if p.StartsWith "/" then p.Substring 1 else p
                     let unpackedPath = Path.Combine ([| settings.ServerPath; p2|])
                     let fullPath = Path.GetFullPath unpackedPath |> Path.GetDirectoryName
-                    if not settings.AllowRootDirectories then
-                        if not(fullPath.StartsWith(settings.ServerPath, StringComparison.OrdinalIgnoreCase)) then failwith $"Tried to access invalid path: {p}"
+                    if not (settings.AllowRootDirectories || (fullPath.StartsWith(settings.ServerPath, StringComparison.OrdinalIgnoreCase))) then
+                        failwith $"Tried to access invalid path: {p}"
                     unpackedPath
 
             let extension = 

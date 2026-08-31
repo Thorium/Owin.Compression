@@ -40,7 +40,7 @@ let run exe (args: string list) =
     psi.WorkingDirectory <- Directory.GetCurrentDirectory()
     psi.UseShellExecute <- false
     for arg in args do
-        psi.ArgumentList.Add(arg)
+        psi.ArgumentList.Add arg
 
     use proc = Process.Start(psi)
     proc.WaitForExit()
@@ -72,7 +72,7 @@ let parseReleaseNotes () =
     let lines = File.ReadAllLines("RELEASE_NOTES.md") |> Array.toList
     let firstHeader =
         lines
-        |> List.tryFind (fun line -> line.StartsWith("### "))
+        |> List.tryFind (fun line -> line.StartsWith "### ")
         |> Option.defaultWith (fun () -> failwith "Could not find a version header in RELEASE_NOTES.md")
 
     let version =
@@ -82,8 +82,8 @@ let parseReleaseNotes () =
         lines
         |> List.skipWhile (fun line -> line <> firstHeader)
         |> List.skip 1
-        |> List.takeWhile (fun line -> not (line.StartsWith("### ")))
-        |> List.filter (fun line -> not (String.IsNullOrWhiteSpace line))
+        |> List.takeWhile (fun line -> not (line.StartsWith "### "))
+        |> List.filter (String.IsNullOrWhiteSpace >> not)
 
     version, notes
 
@@ -228,7 +228,7 @@ let commandLineArgs = fsi.CommandLineArgs |> Array.skip 1 |> Array.toList
 let targetName =
     match commandLineArgs with
     | [] -> "All"
-    | [ single ] when not (single.StartsWith("-")) -> single
+    | [ single ] when not (single.StartsWith "-") -> single
     | "--target" :: value :: _ -> value
     | "target" :: value :: _ -> value
     | _ -> failwith "Usage: dotnet fsi build.fsx -- [--target] <TargetName>"

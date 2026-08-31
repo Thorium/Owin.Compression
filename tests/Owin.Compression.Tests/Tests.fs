@@ -48,8 +48,8 @@ module MockOwin =
               member this.WriteAsync(text: string): Task = Task.FromResult(()) :> Task
               member this.WriteAsync(text: string, token: Threading.CancellationToken): Task = Task.FromResult(()) :> Task 
               member this.WriteAsync(data: byte array): Task = body.WriteAsync(data, 0, data.Length)
-              member this.WriteAsync(data: byte array, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length)
-              member this.WriteAsync(data: byte array, offset: int, count: int, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length)
+              member this.WriteAsync(data: byte array, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length, token)
+              member this.WriteAsync(data: byte array, offset: int, count: int, token: Threading.CancellationToken): Task = body.WriteAsync(data, 0, data.Length, token)
         }
     let generateRequest() =
         let headers = Owin.HeaderDictionary(Dictionary<string, _>())
