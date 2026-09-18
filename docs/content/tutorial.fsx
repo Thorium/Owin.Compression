@@ -74,7 +74,7 @@ open System
 let serverPath = System.Configuration.ConfigurationManager.AppSettings.["WwwRoot"]
 
 type MyWebStartup() =
-    member __.Configuration(app:Owin.IAppBuilder) =
+    member __.Configuration(app:IAppBuilder) =
         let compressionSetting = 
             {OwinCompression.DefaultCompressionSettings with 
                 ServerPath = serverPath; 
@@ -94,7 +94,7 @@ You can also use app.UseCompressionModule() at the beginning of the configuratio
 *)
 
 type MyWebStartupExample2() =
-    member __.Configuration(app:Owin.IAppBuilder) =
+    member __.Configuration(app:IAppBuilder) =
         app.UseCompressionModule() |> ignore
         
         //app.MapSignalR(hubConfig)

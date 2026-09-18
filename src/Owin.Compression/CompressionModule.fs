@@ -351,9 +351,8 @@ module OwinCompression =
                                     if not(contextResponse.Headers.ContainsKey "Transfer-Encoding") 
                                         || contextResponse.Headers.["Transfer-Encoding"] <> "chunked" then
                                         contextResponse.Headers.["Transfer-Encoding"] <- "chunked"
-                                else
-                                    if (not contextResponse.ContentLength.HasValue) || (contextResponse.ContentLength.Value <> -1 && contextResponse.ContentLength.Value <> op.LongLength) then
-                                        contextResponse.ContentLength <- Nullable(op.LongLength)
+                                elif (not contextResponse.ContentLength.HasValue) || (contextResponse.ContentLength.Value <> -1 && contextResponse.ContentLength.Value <> op.LongLength) then
+                                    contextResponse.ContentLength <- Nullable(op.LongLength)
                             with | _ -> () // Content length info is not so important...
 
                         use tmpOutput = new MemoryStream(op)

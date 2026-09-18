@@ -151,7 +151,7 @@ open System
 module Examples =
 
     type MyStartup() =
-        member __.Configuration(app:Owin.IAppBuilder) =
+        member __.Configuration(app:IAppBuilder) =
             let app1 = app.UseCompressionModule()
             app1.UseFileServer "/." |> ignore
             ()

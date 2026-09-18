@@ -3,20 +3,34 @@ open System.Diagnostics
 open System.IO
 open System.Collections.Generic
 
+[<Literal>]
 let project = "Owin.Compression"
+[<Literal>]
 let summary = "Compression (Deflate / GZip / Brotli) and eTag caching module for Microsoft OWIN self-host and ASP.NET Core/Kestrel."
+[<Literal>]
 let description = "Compression (Deflate / GZip / Brotli) module for Microsoft OWIN self-host and ASP.NET Core/Kestrel web servers with built-in eTag caching. With this module you can compress large files (like concatenated *.js or *.css files) to reduce the amount of web traffic."
 let authors = [ "Tuomas Hietanen" ]
+[<Literal>]
 let tags = "OWIN SelfHost GZip Deflate Brotli AspNetCore Kestrel compress pack self host file system pipeline Microsoft"
+[<Literal>]
 let solutionFile = "Owin.Compression.sln"
+[<Literal>]
 let testProject = "tests/Owin.Compression.Tests/Owin.Compression.Tests.fsproj"
+[<Literal>]
 let legacyProject = "src/Owin.Compression/Owin.Compression.fsproj"
+[<Literal>]
 let coreProject = "src/Owin.Compression.Standard/Owin.Compression.Standard.fsproj"
+[<Literal>]
 let paketExecutable = ".paket/paket.exe"
+[<Literal>]
 let paketTemplate = "src/Owin.Compression/paket.template"
+[<Literal>]
 let assemblyInfoFile = "src/Owin.Compression/AssemblyInfo.fs"
+[<Literal>]
 let docsOutput = "docs/output"
+[<Literal>]
 let fsdocsTemp = ".fsdocs"
+[<Literal>]
 let packageOutput = "bin"
 let fsdocsParameters =
     [
@@ -26,7 +40,9 @@ let fsdocsParameters =
         "fsdocs-list-of-namespaces"; "-"
     ]
 
+[<Literal>]
 let gitOwner = "Thorium"
+[<Literal>]
 let gitName = "Owin.Compression"
 let gitHome = "https://github.com/" + gitOwner
 let gitRaw =
@@ -35,10 +51,12 @@ let gitRaw =
     | value -> value
 
 let run exe (args: string list) =
-    let psi = ProcessStartInfo()
-    psi.FileName <- exe
-    psi.WorkingDirectory <- Directory.GetCurrentDirectory()
-    psi.UseShellExecute <- false
+    let psi =
+        ProcessStartInfo(
+            FileName = exe,
+            WorkingDirectory = (Directory.GetCurrentDirectory()),
+            UseShellExecute = false
+        )
     for arg in args do
         psi.ArgumentList.Add arg
 
@@ -96,24 +114,24 @@ let writeAssemblyInfo () =
             "namespace System"
             "open System.Reflection"
             ""
-            sprintf "[<assembly: AssemblyTitleAttribute(\"%s\")>]" project
-            sprintf "[<assembly: AssemblyProductAttribute(\"%s\")>]" project
-            sprintf "[<assembly: AssemblyDescriptionAttribute(\"%s\")>]" summary
+            $"[<assembly: AssemblyTitleAttribute(\"%s{project}\")>]"
+            $"[<assembly: AssemblyProductAttribute(\"%s{project}\")>]"
+            $"[<assembly: AssemblyDescriptionAttribute(\"%s{summary}\")>]"
             sprintf "[<assembly: AssemblyMetadataAttribute(\"Authors\", \"%s\")>]" (String.concat ", " authors)
-            sprintf "[<assembly: AssemblyMetadataAttribute(\"Description\", \"%s\")>]" description
-            sprintf "[<assembly: AssemblyMetadataAttribute(\"Tags\", \"%s\")>]" tags
-            sprintf "[<assembly: AssemblyMetadataAttribute(\"RepositoryUrl\", \"%s/%s\")>]" gitHome gitName
-            sprintf "[<assembly: AssemblyMetadataAttribute(\"RepositoryRaw\", \"%s\")>]" gitRaw
-            sprintf "[<assembly: AssemblyVersionAttribute(\"%s\")>]" releaseVersion
-            sprintf "[<assembly: AssemblyFileVersionAttribute(\"%s\")>]" releaseVersion
+            $"[<assembly: AssemblyMetadataAttribute(\"Description\", \"%s{description}\")>]"
+            $"[<assembly: AssemblyMetadataAttribute(\"Tags\", \"%s{tags}\")>]"
+            $"[<assembly: AssemblyMetadataAttribute(\"RepositoryUrl\", \"%s{gitHome}/%s{gitName}\")>]"
+            $"[<assembly: AssemblyMetadataAttribute(\"RepositoryRaw\", \"%s{gitRaw}\")>]"
+            $"[<assembly: AssemblyVersionAttribute(\"%s{releaseVersion}\")>]"
+            $"[<assembly: AssemblyFileVersionAttribute(\"%s{releaseVersion}\")>]"
             "do ()"
             ""
             "module internal AssemblyVersionInformation ="
-            sprintf "    let [<Literal>] AssemblyTitle = \"%s\"" project
-            sprintf "    let [<Literal>] AssemblyProduct = \"%s\"" project
-            sprintf "    let [<Literal>] AssemblyDescription = \"%s\"" summary
-            sprintf "    let [<Literal>] AssemblyVersion = \"%s\"" releaseVersion
-            sprintf "    let [<Literal>] AssemblyFileVersion = \"%s\"" releaseVersion
+            $"    let [<Literal>] AssemblyTitle = \"%s{project}\""
+            $"    let [<Literal>] AssemblyProduct = \"%s{project}\""
+            $"    let [<Literal>] AssemblyDescription = \"%s{summary}\""
+            $"    let [<Literal>] AssemblyVersion = \"%s{releaseVersion}\""
+            $"    let [<Literal>] AssemblyFileVersion = \"%s{releaseVersion}\""
         ]
 
     File.WriteAllText(assemblyInfoFile, content + Environment.NewLine)

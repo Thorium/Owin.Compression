@@ -9,6 +9,7 @@ open Xunit
 
 open Owin
 open System
+open System.IO
 open Microsoft
 
 module MockOwin =
@@ -16,8 +17,8 @@ module MockOwin =
         let mutable etag = ""
         let mutable body =
             match contentBody with
-            | Some content -> new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes content) :> System.IO.Stream
-            | None -> new System.IO.MemoryStream() :> System.IO.Stream
+            | Some content -> new MemoryStream(System.Text.Encoding.UTF8.GetBytes content) :> Stream
+            | None -> new MemoryStream() :> Stream
         let mutable status = 200
         let setBody v =
             body <- v
@@ -29,18 +30,18 @@ module MockOwin =
                 and set v = setBody v
               member this.ContentLength with get () = Nullable(body.Length) and set v = ()
               member this.ContentType with get () = "html" and set v = ()
-              member this.Context = raise (System.NotImplementedException())
-              member this.Cookies = raise (System.NotImplementedException())
+              member this.Context = raise (NotImplementedException())
+              member this.Cookies = raise (NotImplementedException())
               member this.ETag with get () = etag and set v = etag <- v
-              member this.Environment = raise (System.NotImplementedException())
+              member this.Environment = raise (NotImplementedException())
               member this.Expires with get () = Nullable(DateTime.Today.AddMonths 1) and set v = ()
-              member this.Get key = raise (System.NotImplementedException())
+              member this.Get key = raise (NotImplementedException())
               member this.Headers = headers
-              member this.OnSendingHeaders(callback, state) = raise (System.NotImplementedException())
+              member this.OnSendingHeaders(callback, state) = raise (NotImplementedException())
               member this.Protocol with get () = "http" and set v = ()
               member this.ReasonPhrase with get () = "" and set v = ()
-              member this.Redirect location = raise (System.NotImplementedException())
-              member this.Set(key, value) = raise (System.NotImplementedException())
+              member this.Redirect location = raise (NotImplementedException())
+              member this.Set(key, value) = raise (NotImplementedException())
               member this.StatusCode with get () = status and set v = status <- v
               member this.Write(text: string): unit = ()
               member this.Write(data: byte array): unit = ()
@@ -57,69 +58,69 @@ module MockOwin =
         let mutable path = "/index.html"
         { new Microsoft.Owin.IOwinRequest with
               member this.Accept
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.Body
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.CacheControl
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.CallCancelled
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.ContentType
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
-              member this.Context = raise (System.NotImplementedException())
-              member this.Cookies = raise (System.NotImplementedException())
-              member this.Environment = raise (System.NotImplementedException())
-              member this.Get key = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
+              member this.Context = raise (NotImplementedException())
+              member this.Cookies = raise (NotImplementedException())
+              member this.Environment = raise (NotImplementedException())
+              member this.Get key = raise (NotImplementedException())
               member this.Headers = headers
               member this.Host
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
-              member this.IsSecure = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
+              member this.IsSecure = raise (NotImplementedException())
               member this.LocalIpAddress
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.LocalPort
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.MediaType
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.Method
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.Path
                   with get () = Owin.PathString path
                   and set v = path <- v.Value
               member this.PathBase
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.Protocol
                   with get () = "http"
                   and set v = ()
-              member this.Query = raise (System.NotImplementedException())
+              member this.Query = raise (NotImplementedException())
               member this.QueryString
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
-              member this.ReadFormAsync() = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
+              member this.ReadFormAsync() = raise (NotImplementedException())
               member this.RemoteIpAddress
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.RemotePort
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
               member this.Scheme
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
-              member this.Set(key, value) = raise (System.NotImplementedException())
-              member this.Uri = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
+              member this.Set(key, value) = raise (NotImplementedException())
+              member this.Uri = raise (NotImplementedException())
               member this.User
-                  with get () = raise (System.NotImplementedException())
-                  and set v = raise (System.NotImplementedException())
+                  with get () = raise (NotImplementedException())
+                  and set v = raise (NotImplementedException())
         }
 
 module WebStartFileServer =
@@ -184,7 +185,7 @@ type ``Compress internals fixture`` () =
 
     [<Fact>]
     member test. ``GetHash should be consistent`` () =
-        use ms = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes "hello")
+        use ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes "hello")
         let h = OwinCompression.Internals.getHash ms
         Assert.Equal(ValueSome "5D41402ABC4B2A76B9719D911017C592", h)
 
@@ -227,7 +228,7 @@ type ``Compress internals fixture`` () =
             let! res = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
             Assert.NotNull mockResponse.Body
             Assert.Equal(200,mockResponse.StatusCode)
-            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
+            let content = (mockResponse.Body :?> MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
             Assert.Equal("hello",content)
             Assert.False (mockResponse.Headers.ContainsKey "ETag")
             return ()
@@ -244,7 +245,7 @@ type ``Compress internals fixture`` () =
             let! isOk = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
             Assert.NotNull mockResponse.Body
             Assert.Equal(200,mockResponse.StatusCode)
-            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
+            let content = (mockResponse.Body :?> MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
             Assert.True(content.Length < longstring.Length, "wasn't compressed")
             Assert.True(content.Length > 0, "Result shouldn't be empty")
             Assert.Equal("3FFF606E12076433E80412E5048FF643", mockResponse.ETag)
@@ -260,14 +261,14 @@ type ``Compress internals fixture`` () =
             let mutable pipelineProcessing = 0
             let taskReturn = Func<Task>(fun _ ->
                 task {
-                    mockResponse.Body <- new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes longstring) :> System.IO.Stream
+                    mockResponse.Body <- new MemoryStream(System.Text.Encoding.UTF8.GetBytes longstring) :> Stream
                     pipelineProcessing <- 1
                     return () } :> Task)
             let! isOk = OwinCompression.Internals.encodeStream SupportedEncodings.Deflate OwinCompression.DefaultCompressionSettings mockRequest mockResponse (new Threading.CancellationTokenSource()) taskReturn
             Assert.NotNull mockResponse.Body
             Assert.Equal(200,mockResponse.StatusCode)
             Assert.Equal(1,pipelineProcessing)
-            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
+            let content = (mockResponse.Body :?> MemoryStream).ToArray() |> System.Text.Encoding.UTF8.GetString
             Assert.True(content.Length < longstring.Length, "wasn't compressed")
             Assert.True(content.Length > 0, "Result shouldn't be empty")
             Assert.Equal("3FFF606E12076433E80412E5048FF643", mockResponse.ETag)
@@ -285,7 +286,7 @@ type ``Compress internals fixture`` () =
             Assert.NotNull mockResponse.Body
             Assert.Equal(200,mockResponse.StatusCode)
             Assert.NotNull mockResponse.ETag
-            let content = (mockResponse.Body :?> System.IO.MemoryStream).ToArray() 
+            let content = (mockResponse.Body :?> MemoryStream).ToArray() 
             Assert.True(content.Length > 0)
             
             return ()
